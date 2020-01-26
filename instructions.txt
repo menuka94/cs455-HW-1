@@ -1,0 +1,3 @@
+Port numbers are not to be hardcoded
+Use port 0 to assign a random port
+manifest messages should be different for different nodes
