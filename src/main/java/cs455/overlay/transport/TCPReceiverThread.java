@@ -3,7 +3,6 @@ package cs455.overlay.transport;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class TCPReceiverThread extends Thread {
     private Socket socket;
