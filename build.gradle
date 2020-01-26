@@ -20,7 +20,7 @@ dependencies {
 
 jar {
     manifest {
-        attributes "Main-Class": "cs455.overlay.Node"
+        attributes "Main-Class": "cs455.overlay.node.Registry"
     }
 
     from {
