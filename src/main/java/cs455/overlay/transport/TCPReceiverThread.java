@@ -3,8 +3,11 @@ package cs455.overlay.transport;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TCPReceiverThread extends Thread {
+    private static final Logger logger = LogManager.getLogger(TCPReceiverThread.class);
     private Socket socket;
     private DataInputStream din;
 
@@ -21,7 +24,7 @@ public class TCPReceiverThread extends Thread {
                 byte[] data = new byte[dataLength];
                 din.readFully(data, 0, dataLength);
             } catch (IOException se) {
-                System.out.println(se.getMessage());
+                logger.error(se.getMessage());
                 break;
             }
         }
