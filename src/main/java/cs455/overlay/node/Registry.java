@@ -9,21 +9,9 @@ public class Registry implements Node {
     private static final Logger logger = LogManager.getLogger(Registry.class);
     private static int port;
 
-    private static Registry instance;
-
-    private Registry() {
-    }
-
     public static void main(String[] args) {
-        logger.info("Port Number received: " + args[0]);
-    }
-
-    public synchronized static Registry getInstance(int registryPort) {
-        if (instance == null) {
-            port = registryPort;
-            instance = new Registry();
-        }
-        return instance;
+        port = Integer.parseInt(args[0]);
+        logger.info("Port Number received: " + port);
     }
 
     @Override
