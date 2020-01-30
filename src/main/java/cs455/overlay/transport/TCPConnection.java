@@ -13,7 +13,6 @@ public class TCPConnection {
 
     public TCPConnection(Socket socket) throws IOException {
         this.socket = socket;
-        tcpSender = new TCPSender(socket);
     }
 
     public Socket getSocket() {
@@ -27,7 +26,10 @@ public class TCPConnection {
         tcpReceiverThread.start();
     }
 
-    public void sendData(byte[] data) {
+    public void sendData(byte[] data) throws IOException {
+        if (tcpSender == null) {
+            tcpSender = new TCPSender(socket);
+        }
         try {
             tcpSender.sendData(data);
         } catch (IOException e) {

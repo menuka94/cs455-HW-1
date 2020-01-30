@@ -7,16 +7,36 @@ import org.apache.logging.log4j.Logger;
 
 public class TCPServerThread extends Thread {
     private static final Logger logger = LogManager.getLogger(TCPServerThread.class);
+    private boolean listeningForClients;
+    private ServerSocket serverSocket;
+
+    public TCPServerThread(int listenPort) throws IOException {
+        serverSocket = new ServerSocket(listenPort);
+    }
 
     @Override
     public void run() {
-        try {
-            ServerSocket serverSocket = new ServerSocket(4511);
-            serverSocket.accept();
-            System.out.println("Connection Established");
-        } catch (IOException e) {
-            logger.error(e.getMessage());
+        listeningForClients = true;
+
+        while (listeningForClients) {
+            try {
+                logger.info("Server accepting connections ...");
+                serverSocket.accept();
+                logger.info("New Connection Established");
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+            }
         }
+
+        try {
+            serverSocket.close();
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        }
+    }
+
+    public void stopListeningForClients() {
+        listeningForClients = false;
     }
 
 }
