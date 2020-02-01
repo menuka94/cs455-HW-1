@@ -24,7 +24,7 @@ public class TCPServerThread extends Thread {
                 serverSocket.accept();
                 logger.info("New Connection Established");
             } catch (IOException e) {
-                logger.error(e.getMessage());
+                logger.error(e.getStackTrace());
             }
         }
 
