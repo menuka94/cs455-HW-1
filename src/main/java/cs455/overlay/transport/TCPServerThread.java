@@ -21,27 +21,33 @@ public class TCPServerThread extends Thread {
 
         while (listeningForClients) {
             try {
-                logger.info("Server accepting connections ...");
+                logger.info("Server is accepting connections ...");
                 Socket socket = serverSocket.accept();
                 TCPConnection tcpConnection = new TCPConnection(socket);
-                logger.info("socket.getInetAddress(): " + socket.getInetAddress());
-                TCPConnectionsCache.addConnection(socket.getInetAddress().getHostAddress(),
-                        tcpConnection);
+                TCPConnectionsCache.addConnection(socket, tcpConnection);
                 logger.info("New Connection Established");
             } catch (IOException e) {
+                logger.error("Error while listening for clients");
                 logger.error(e.getStackTrace());
             }
         }
 
+        // no longer listening for clients
+        logger.info("Server is no longer accepting connections");
         try {
             serverSocket.close();
         } catch (IOException e) {
+            logger.error("Error in closing serverSocket");
             logger.error(e.getStackTrace());
         }
     }
 
     public void stopListeningForClients() {
         listeningForClients = false;
+    }
+
+    public int getListeningPort() {
+        return serverSocket.getLocalPort();
     }
 
 }

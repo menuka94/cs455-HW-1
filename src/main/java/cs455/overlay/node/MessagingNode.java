@@ -20,6 +20,9 @@ public class MessagingNode implements Node {
     public MessagingNode(Socket registrySocket) throws IOException {
         registryConnection = new TCPConnection(registrySocket);
 
+        tcpServerThread = new TCPServerThread(0);
+        tcpServerThread.start();
+
         sendRegistrationRequestToRegistry();
     }
 
@@ -38,9 +41,15 @@ public class MessagingNode implements Node {
         // Input is OK. Create a new messaging node
         Socket socket = new Socket(registryHost, registryPort);
         MessagingNode node = new MessagingNode(socket);
-        TCPConnection connection = new TCPConnection(socket);
-        connection.sendData("Hello World".getBytes());
-        connection.startTCPReceiverThread();
+        TCPConnection connection;
+        if (TCPConnectionsCache.containsConnection(socket)) {
+            connection = TCPConnectionsCache.getConnection(socket);
+            logger.info("Connection found in TCPConnectionsCache");
+        } else {
+            logger.info("Connection not found in TCPConnectionsCache." +
+                    "Creating a new connection");
+            connection = new TCPConnection(socket);
+        }
 
     }
 
@@ -49,7 +58,14 @@ public class MessagingNode implements Node {
 
     }
 
+    /**
+     * byte: Message Type (OVERLAY_NODE_SENDS_REGISTRATION)
+     * byte: length of following "IP address" field
+     * byte[^^]: IP address; from InetAddress.getAddress()
+     * int: Port number
+     */
     private void sendRegistrationRequestToRegistry() {
         OverlayNodeSendsRegistration message = new OverlayNodeSendsRegistration();
+        // message.setNodeIPAddressLength();
     }
 }

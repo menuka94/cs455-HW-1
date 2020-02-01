@@ -1,10 +1,8 @@
 package cs455.overlay.node;
 
 import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPServerThread;
+import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.Protocol;
 import org.apache.logging.log4j.LogManager;
@@ -12,13 +10,21 @@ import org.apache.logging.log4j.Logger;
 
 public class Registry implements Node {
     private static final Logger logger = LogManager.getLogger(Registry.class);
-    private static int port;
+    private int port;
+    private InteractiveCommandParser commandParser;
+    private TCPServerThread tcpServerThread;
+
+    private Registry(int port) throws IOException {
+        tcpServerThread = new TCPServerThread(port);
+        tcpServerThread.start();
+        commandParser = new InteractiveCommandParser(this);
+        commandParser.start();
+    }
 
     public static void main(String[] args) throws IOException {
         logger.info("main()");
-        port = Integer.parseInt(args[0]);
-        TCPServerThread tcpServerThread = new TCPServerThread(port);
-        tcpServerThread.start();
+        int port = Integer.parseInt(args[0]);
+        Registry registry = new Registry(port);
     }
 
     @Override
