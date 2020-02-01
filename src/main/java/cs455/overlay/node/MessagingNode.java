@@ -6,6 +6,7 @@ import java.net.Socket;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
+import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import org.apache.logging.log4j.LogManager;
@@ -15,6 +16,7 @@ public class MessagingNode implements Node {
     private TCPConnection registryConnection;
     private TCPServerThread tcpServerThread;
     private TCPConnectionsCache tcpConnectionsCache;
+    private InteractiveCommandParser commandParser;
     private static final Logger logger = LogManager.getLogger(MessagingNode.class);
 
     public MessagingNode(Socket registrySocket) throws IOException {
@@ -22,6 +24,9 @@ public class MessagingNode implements Node {
 
         tcpServerThread = new TCPServerThread(0);
         tcpServerThread.start();
+
+        commandParser = new InteractiveCommandParser(this);
+        commandParser.start();
 
         sendRegistrationRequestToRegistry();
     }

@@ -55,7 +55,14 @@ public class InteractiveCommandParser extends Thread {
     private void parseMessagingNodeCommands(Scanner scanner) {
         String nextCommand;
         while (acceptingCommands) {
-            nextCommand = scanner.next();
+            nextCommand = scanner.next().trim();
+            if (nextCommand.contains(Constants.PRINT_COUNTERS_AND_DIAGNOSTICS)) {
+                System.out.println("TODO: " + Constants.PRINT_COUNTERS_AND_DIAGNOSTICS);
+            } else if (nextCommand.contains(Constants.EXIT_OVERLAY)) {
+                System.out.println("TODO: " + Constants.EXIT_OVERLAY);
+            } else {
+                System.out.println("Invalid command for messaging node: " + nextCommand);
+            }
         }
 
         scanner.close();
