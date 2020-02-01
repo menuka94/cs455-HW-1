@@ -15,6 +15,7 @@ public class Registry implements Node {
     private static int port;
 
     public static void main(String[] args) throws IOException {
+        logger.info("main()");
         port = Integer.parseInt(args[0]);
         TCPServerThread tcpServerThread = new TCPServerThread(port);
         tcpServerThread.start();

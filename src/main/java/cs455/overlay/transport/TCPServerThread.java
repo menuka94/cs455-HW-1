@@ -2,6 +2,7 @@ package cs455.overlay.transport;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.Socket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,7 +22,11 @@ public class TCPServerThread extends Thread {
         while (listeningForClients) {
             try {
                 logger.info("Server accepting connections ...");
-                serverSocket.accept();
+                Socket socket = serverSocket.accept();
+                TCPConnection tcpConnection = new TCPConnection(socket);
+                logger.info("socket.getInetAddress(): " + socket.getInetAddress());
+                TCPConnectionsCache.addConnection(socket.getInetAddress().getHostAddress(),
+                        tcpConnection);
                 logger.info("New Connection Established");
             } catch (IOException e) {
                 logger.error(e.getStackTrace());

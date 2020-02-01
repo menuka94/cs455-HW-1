@@ -4,8 +4,11 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class TCPSender {
+    private static final Logger logger = LogManager.getLogger(TCPSender.class);
     private Socket socket;
     private DataOutputStream dout;
 
@@ -15,6 +18,7 @@ public class TCPSender {
     }
 
     public void sendData(byte[] dataToSend) throws IOException {
+        logger.info("Sending data: " + dataToSend);
         int dataLength = dataToSend.length;
         dout.writeInt(dataLength);
         dout.write(dataToSend, 0, dataLength);

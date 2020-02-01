@@ -24,7 +24,7 @@ public class TCPReceiverThread extends Thread {
                 dataLength = din.readInt();
                 byte[] data = new byte[dataLength];
                 din.readFully(data, 0, dataLength);
-
+                logger.info("readFully: " + data);
             } catch (IOException se) {
                 logger.error(se.getStackTrace());
                 break;
