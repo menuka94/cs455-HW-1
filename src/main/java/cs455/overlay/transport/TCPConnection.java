@@ -13,17 +13,12 @@ public class TCPConnection {
 
     public TCPConnection(Socket socket) throws IOException {
         this.socket = socket;
+        tcpReceiverThread = new TCPReceiverThread(socket);
+        tcpReceiverThread.start();
     }
 
     public Socket getSocket() {
         return socket;
-    }
-
-    public synchronized void startTCPReceiverThread() throws IOException {
-        if (tcpReceiverThread == null) {
-            tcpReceiverThread = new TCPReceiverThread(socket);
-        }
-        tcpReceiverThread.start();
     }
 
     public void sendData(byte[] data) throws IOException {
@@ -45,8 +40,8 @@ public class TCPConnection {
         return socket.getPort();
     }
 
-    public String getLocalAddress() {
-        return socket.getLocalAddress().getHostAddress();
+    public byte[] getLocalAddress() {
+        return socket.getLocalAddress().getAddress();
     }
 
     public int getLocalPort() {

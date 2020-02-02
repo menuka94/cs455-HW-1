@@ -25,7 +25,9 @@ public class TCPServerThread extends Thread {
                 Socket socket = serverSocket.accept();
                 TCPConnection tcpConnection = new TCPConnection(socket);
                 TCPConnectionsCache.addConnection(socket, tcpConnection);
-                logger.info("New Connection Established");
+                logger.info("New Connection Established with " +
+                        tcpConnection.getDestinationAddress() + " on port " +
+                        tcpConnection.getDestinationPort());
             } catch (IOException e) {
                 logger.error("Error while listening for clients");
                 logger.error(e.getStackTrace());

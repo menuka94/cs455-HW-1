@@ -11,18 +11,24 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-public class OverlayNodeSendsRegistration implements Event {
-    private static final Logger logger = LogManager.getLogger(OverlayNodeSendsRegistration.class);
-    private byte[] ipAddress;
 
-    private byte nodeIPAddressLength;
-    private byte[] nodeIPAddress;
-    private int nodePort;
+public class OverlayNodeSendsRegistration extends Event {
+    private static final Logger logger = LogManager.getLogger(OverlayNodeSendsRegistration.class);
+
+    private byte ipAddressLength;
+    private byte[] ipAddress;
+    private int port;
 
     public OverlayNodeSendsRegistration() {
 
     }
 
+    /**
+     * byte: Message Type (OVERLAY_NODE_SENDS_REGISTRATION)
+     * byte: length of following "IP address" field
+     * byte[^^]: IP address; from InetAddress.getAddress()
+     * int: Port number
+     */
     public OverlayNodeSendsRegistration(byte[] marshalledBytes) throws IOException {
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
         DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
@@ -33,33 +39,37 @@ public class OverlayNodeSendsRegistration implements Event {
             logger.warn("Unexpected message type: " + ProtocolLookup.getEventLiteral(Byte.toUnsignedInt(messageType)));
         }
 
-        nodeIPAddressLength = din.readByte();
-        nodeIPAddress = new byte[nodeIPAddressLength];
-        din.readFully(nodeIPAddress, 0, nodeIPAddressLength);
+        ipAddressLength = din.readByte();
+        ipAddress = new byte[ipAddressLength];
+        din.readFully(ipAddress, 0, ipAddressLength);
 
-        nodePort = din.readInt();
+        port = din.readInt();
         baInputStream.close();
         din.close();
     }
 
-    public void setNodeIPAddressLength(byte nodeIPAddressLength) {
-        this.nodeIPAddressLength = nodeIPAddressLength;
-    }
-
-    public void setNodeIPAddress(byte[] nodeIPAddress) {
-        this.nodeIPAddress = nodeIPAddress;
-    }
-
-    public void setNodePort(int nodePort) {
-        this.nodePort = nodePort;
+    public void setIpAddressLength(byte ipAddressLength) {
+        this.ipAddressLength = ipAddressLength;
     }
 
     public void setIpAddress(byte[] ipAddress) {
         this.ipAddress = ipAddress;
     }
 
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public byte getIpAddressLength() {
+        return ipAddressLength;
+    }
+
     public byte[] getIpAddress() {
         return ipAddress;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     @Override
@@ -70,9 +80,9 @@ public class OverlayNodeSendsRegistration implements Event {
 
         try {
             dout.writeByte(getType());
-            dout.writeByte(nodeIPAddressLength);
-            dout.write(nodeIPAddress);
-            dout.writeInt(nodePort);
+            dout.writeByte(ipAddressLength);
+            dout.write(ipAddress);
+            dout.writeInt(port);
 
             dout.flush();
 

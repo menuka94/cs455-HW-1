@@ -1,6 +1,10 @@
 package cs455.overlay.wireformats;
 
-public class OverlayNodeReportsTrafficSummary implements Event {
+public class OverlayNodeReportsTrafficSummary extends Event {
+    public OverlayNodeReportsTrafficSummary(byte[] marshalledBytes) {
+
+    }
+
     @Override
     public byte[] getBytes() {
         return new byte[0];

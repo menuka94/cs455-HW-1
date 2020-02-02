@@ -1,7 +1,19 @@
 package cs455.overlay.wireformats;
 
-public interface Event {
-    byte[] getBytes();
+import java.net.Socket;
 
-    int getType();
+public abstract class Event {
+    private Socket socket;
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+
+    public abstract byte[] getBytes();
+
+    public abstract int getType();
 }

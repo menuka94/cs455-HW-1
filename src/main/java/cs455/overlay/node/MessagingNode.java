@@ -69,8 +69,12 @@ public class MessagingNode implements Node {
      * byte[^^]: IP address; from InetAddress.getAddress()
      * int: Port number
      */
-    private void sendRegistrationRequestToRegistry() {
+    private void sendRegistrationRequestToRegistry() throws IOException {
         OverlayNodeSendsRegistration message = new OverlayNodeSendsRegistration();
-        // message.setNodeIPAddressLength();
+        message.setIpAddressLength((byte) registryConnection.getLocalAddress().length);
+        message.setIpAddress(registryConnection.getLocalAddress());
+        message.setPort(registryConnection.getDestinationPort());
+
+        registryConnection.sendData(message.getBytes());
     }
 }

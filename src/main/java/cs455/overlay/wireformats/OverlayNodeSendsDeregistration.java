@@ -1,6 +1,11 @@
 package cs455.overlay.wireformats;
 
-public class OverlayNodeSendsDeregistration implements Event {
+public class OverlayNodeSendsDeregistration extends Event {
+
+    public OverlayNodeSendsDeregistration(byte[] marshalledBytes) {
+
+    }
+
     @Override
     public byte[] getBytes() {
         return new byte[0];

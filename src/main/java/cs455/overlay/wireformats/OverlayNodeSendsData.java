@@ -1,6 +1,11 @@
 package cs455.overlay.wireformats;
 
-public class OverlayNodeSendsData implements Event {
+public class OverlayNodeSendsData extends Event {
+
+    public OverlayNodeSendsData(byte[] marshalledBytes) {
+
+    }
+
     @Override
     public byte[] getBytes() {
         return new byte[0];

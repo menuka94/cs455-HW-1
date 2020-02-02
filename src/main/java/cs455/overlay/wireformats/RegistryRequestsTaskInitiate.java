@@ -1,6 +1,10 @@
 package cs455.overlay.wireformats;
 
-public class RegistryRequestsTaskInitiate implements Event {
+public class RegistryRequestsTaskInitiate extends Event {
+
+    public RegistryRequestsTaskInitiate(byte[] marshalledBytes) {
+
+    }
     @Override
     public byte[] getBytes() {
         return new byte[0];

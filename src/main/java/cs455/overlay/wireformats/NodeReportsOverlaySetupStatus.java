@@ -1,6 +1,10 @@
 package cs455.overlay.wireformats;
 
-public class NodeReportsOverlaySetupStatus implements Event {
+public class NodeReportsOverlaySetupStatus extends Event {
+    public NodeReportsOverlaySetupStatus(byte[] marshalledBytes) {
+
+    }
+
     @Override
     public byte[] getBytes() {
         return new byte[0];

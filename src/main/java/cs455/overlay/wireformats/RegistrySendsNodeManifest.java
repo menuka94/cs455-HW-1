@@ -1,6 +1,10 @@
 package cs455.overlay.wireformats;
 
-public class RegistrySendsNodeManifest implements Event {
+public class RegistrySendsNodeManifest extends Event {
+    public RegistrySendsNodeManifest(byte[] marshalledBytes) {
+
+    }
+
     @Override
     public byte[] getBytes() {
         return new byte[0];

@@ -1,6 +1,9 @@
 package cs455.overlay.wireformats;
 
-public class RegistryReportsDeregistrationStatus implements Event {
+public class RegistryReportsDeregistrationStatus extends Event {
+    public RegistryReportsDeregistrationStatus(byte[] marshalledBytes) {
+
+    }
 
     @Override
     public byte[] getBytes() {
