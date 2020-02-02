@@ -1,6 +1,7 @@
 package cs455.overlay.node;
 
 import java.io.IOException;
+import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Event;
@@ -46,6 +47,10 @@ public class Registry implements Node {
         } else {
             logger.warn("Unknown event type");
         }
+    }
+
+    public void listMessagingNodes() {
+        TCPConnectionsCache.printConnections();
     }
 
     private void respondToOverlayNodeReportsTaskFinished() {

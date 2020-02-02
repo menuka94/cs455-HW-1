@@ -8,8 +8,10 @@ import cs455.overlay.node.Registry;
 public class InteractiveCommandParser extends Thread {
     private boolean acceptingCommands;
     private boolean isRegistry;
+    private Node node;
 
     public InteractiveCommandParser(Node node) {
+        this.node = node;
         acceptingCommands = true;
         if (node instanceof Registry) {
             isRegistry = true;
@@ -32,10 +34,11 @@ public class InteractiveCommandParser extends Thread {
 
     private void parseRegistryCommands(Scanner scanner) {
         String nextCommand;
+        Registry registry = (Registry) node;
         while (acceptingCommands) {
             nextCommand = scanner.nextLine().trim();
             if (nextCommand.contains(Constants.LIST_MESSAGING_NODES)) {
-                System.out.println("TODO: List messaging nodes");
+                registry.listMessagingNodes();
             } else if (nextCommand.contains(Constants.LIST_ROUTING_TABLES)) {
                 System.out.println("TODO: List routing tables");
             } else if (nextCommand.contains(Constants.START)) {

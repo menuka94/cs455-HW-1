@@ -36,4 +36,30 @@ public class TCPConnection {
             logger.error(e.getMessage());
         }
     }
+
+    public String getDestinationAddress() {
+        return socket.getInetAddress().getHostAddress();
+    }
+
+    public int getDestinationPort() {
+        return socket.getPort();
+    }
+
+    public String getLocalAddress() {
+        return socket.getLocalAddress().getHostAddress();
+    }
+
+    public int getLocalPort() {
+        return socket.getLocalPort();
+    }
+
+    @Override
+    public String toString() {
+        return "TCPConnection{" +
+                "destinationAddress=" + getDestinationAddress() +
+                ", destinationPort=" + getDestinationPort() +
+                ", localAddress=" + getLocalAddress() +
+                ", localPort=" + getLocalPort() +
+                '}';
+    }
 }

@@ -81,7 +81,7 @@ public class OverlayNodeSendsRegistration implements Event {
             baOutputStream.close();
             dout.close();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getStackTrace());
         }
 
         return marshalledBytes;

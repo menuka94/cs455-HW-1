@@ -2,6 +2,7 @@ package cs455.overlay.transport;
 
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Set;
 
 public class TCPConnectionsCache {
     private static HashMap<Socket, TCPConnection> cachedConnections
@@ -19,7 +20,14 @@ public class TCPConnectionsCache {
         cachedConnections.remove(socket);
     }
 
-    public static boolean containsConnection(Socket socket) {
+    public static synchronized boolean containsConnection(Socket socket) {
         return cachedConnections.containsKey(socket);
+    }
+
+    public static void printConnections() {
+        Set<Socket> sockets = cachedConnections.keySet();
+        for (Socket socket : sockets) {
+            System.out.println(cachedConnections.get(socket));
+        }
     }
 }
