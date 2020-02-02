@@ -20,9 +20,9 @@ public class MessagingNode implements Node {
     private static final Logger logger = LogManager.getLogger(MessagingNode.class);
 
     public MessagingNode(Socket registrySocket) throws IOException {
-        registryConnection = new TCPConnection(registrySocket);
+        registryConnection = new TCPConnection(registrySocket, this);
 
-        tcpServerThread = new TCPServerThread(0);
+        tcpServerThread = new TCPServerThread(0, this);
         tcpServerThread.start();
 
         commandParser = new InteractiveCommandParser(this);
@@ -53,7 +53,7 @@ public class MessagingNode implements Node {
         } else {
             logger.info("Connection not found in TCPConnectionsCache." +
                     "Creating a new connection");
-            connection = new TCPConnection(socket);
+            connection = new TCPConnection(socket, node);
         }
 
     }

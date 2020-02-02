@@ -2,6 +2,7 @@ package cs455.overlay.transport;
 
 import java.io.IOException;
 import java.net.Socket;
+import cs455.overlay.node.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,10 +11,12 @@ public class TCPConnection {
     private Socket socket;
     private TCPSender tcpSender;
     private TCPReceiverThread tcpReceiverThread;
+    private Node node;  // node associated with the TCPConnection
 
-    public TCPConnection(Socket socket) throws IOException {
+    public TCPConnection(Socket socket, Node node) throws IOException {
         this.socket = socket;
-        tcpReceiverThread = new TCPReceiverThread(socket);
+        this.node = node;
+        tcpReceiverThread = new TCPReceiverThread(socket, node);
         tcpReceiverThread.start();
     }
 

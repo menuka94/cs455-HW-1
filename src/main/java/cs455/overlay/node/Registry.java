@@ -54,7 +54,7 @@ public class Registry implements Node {
     }
 
     private Registry(int port) throws IOException {
-        tcpServerThread = new TCPServerThread(port);
+        tcpServerThread = new TCPServerThread(port, this);
         tcpServerThread.start();
         commandParser = new InteractiveCommandParser(this);
         commandParser.start();

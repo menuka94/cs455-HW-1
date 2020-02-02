@@ -3,6 +3,7 @@ package cs455.overlay.transport;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import cs455.overlay.node.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,9 +11,11 @@ public class TCPServerThread extends Thread {
     private static final Logger logger = LogManager.getLogger(TCPServerThread.class);
     private boolean listeningForClients;
     private ServerSocket serverSocket;
+    private Node node;
 
-    public TCPServerThread(int listenPort) throws IOException {
+    public TCPServerThread(int listenPort, Node node) throws IOException {
         serverSocket = new ServerSocket(listenPort);
+        this.node = node;
     }
 
     @Override
@@ -23,7 +26,7 @@ public class TCPServerThread extends Thread {
             try {
                 logger.info("Server is accepting connections ...");
                 Socket socket = serverSocket.accept();
-                TCPConnection tcpConnection = new TCPConnection(socket);
+                TCPConnection tcpConnection = new TCPConnection(socket, node);
                 TCPConnectionsCache.addConnection(socket, tcpConnection);
                 logger.info("New Connection Established with " +
                         tcpConnection.getDestinationAddress() + " on port " +
