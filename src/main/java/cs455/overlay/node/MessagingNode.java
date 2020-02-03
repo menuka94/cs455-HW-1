@@ -50,8 +50,6 @@ public class MessagingNode implements Node {
     }
 
     public static void main(String[] args) throws IOException {
-        String registryHost = args[0];
-        int registryPort = Integer.parseInt(args[1]);
 
         if (args.length < 2) {
             logger.error("Not enough arguments to start messaging node. Please provide registryHost and registryPort.");
@@ -62,6 +60,8 @@ public class MessagingNode implements Node {
         }
 
         // Input is OK. Create a new messaging node
+        String registryHost = args[0];
+        int registryPort = Integer.parseInt(args[1]);
         Socket socket = new Socket(registryHost, registryPort);
         MessagingNode node = new MessagingNode(socket);
         TCPConnection connection;
@@ -73,7 +73,6 @@ public class MessagingNode implements Node {
                     "Creating a new connection");
             connection = new TCPConnection(socket, node);
         }
-
     }
 
     public int getId() {
