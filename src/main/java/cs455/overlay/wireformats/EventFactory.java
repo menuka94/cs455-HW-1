@@ -21,18 +21,21 @@ public class EventFactory {
 
     public Event getEvent(byte[] data, Socket socket)
             throws IOException {
-        logger.info("data length: " + data.length);
+        // logger.info("data length: " + data.length);
         byte b = ByteBuffer.wrap(data).get(0);
-        logger.info((int) b);
+        // logger.info("Event type: " + (int) b);
         switch ((int) b) {
             case Protocol.OVERLAY_NODE_SENDS_DATA:
                 return new OverlayNodeSendsData(data);
             case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
+                logger.info("OVERLAY_NODE_SENDS_REGISTRATION");
                 OverlayNodeSendsRegistration event = new OverlayNodeSendsRegistration(data);
                 event.setSocket(socket);
                 return event;
             case Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS:
-                return new RegistryReportsRegistrationStatus(data);
+                logger.info("REGISTRY_REPORTS_REGISTRATION_STATUS");
+                RegistryReportsRegistrationStatus registrationStatus = new RegistryReportsRegistrationStatus(data);
+                return registrationStatus;
             case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
                 return new OverlayNodeSendsDeregistration(data);
             case Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS:

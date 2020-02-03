@@ -26,6 +26,7 @@ public class TCPReceiverThread extends Thread {
         while (socket != null) {
             try {
                 dataLength = din.readInt();
+                logger.info("dataLength: " + dataLength);
                 byte[] data = new byte[dataLength];
                 din.readFully(data, 0, dataLength);
                 node.onEvent(EventFactory.getInstance().getEvent(data, socket));

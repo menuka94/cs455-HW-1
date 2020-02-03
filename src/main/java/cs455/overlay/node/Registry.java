@@ -127,7 +127,7 @@ public class Registry implements Node {
                 String infoString = "Node already registered";
                 responseEvent.setInfoString(infoString.getBytes());
                 responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
-            } else{
+            } else {
                 // proceed to register the node
                 randomNodeId = random.nextInt(Constants.MAX_NODES);
                 logger.info("Generated ID for new node: " + randomNodeId);

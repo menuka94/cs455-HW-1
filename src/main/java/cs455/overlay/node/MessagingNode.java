@@ -39,10 +39,11 @@ public class MessagingNode implements Node {
         RegistryReportsRegistrationStatus registrationStatus = (RegistryReportsRegistrationStatus) event;
         int successStatus = registrationStatus.getSuccessStatus();
         if (successStatus == -1) {
-            logger.info("Registration failed");
+            logger.info("Registration failed!");
             logger.info(registrationStatus.getInfoString());
             System.exit(-1);
         } else {
+            logger.info("Registration successful!");
             setId(successStatus);
             logger.info(registrationStatus.getInfoString());
         }
