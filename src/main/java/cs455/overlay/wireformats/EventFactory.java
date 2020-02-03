@@ -1,7 +1,9 @@
 package cs455.overlay.wireformats;
 
 import java.io.IOException;
+import java.net.Socket;
 import java.nio.ByteBuffer;
+import cs455.overlay.node.MessagingNode;
 
 public class EventFactory {
     private static EventFactory instance;
@@ -15,13 +17,16 @@ public class EventFactory {
         return instance;
     }
 
-    public Event getEvent(byte[] data) throws IOException {
+    public Event getEvent(byte[] data, Socket socket, MessagingNode messagingNode)
+            throws IOException {
 
-        switch(ByteBuffer.wrap(data).get(0)) {
+        switch (ByteBuffer.wrap(data).get(0)) {
             case Protocol.OVERLAY_NODE_SENDS_DATA:
                 return new OverlayNodeSendsData(data);
             case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
-                return new OverlayNodeSendsRegistration(data);
+                OverlayNodeSendsRegistration event = new OverlayNodeSendsRegistration(data, messagingNode);
+                event.setSocket(socket);
+                return event;
             case Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS:
                 return new RegistryReportsRegistrationStatus(data);
             case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:

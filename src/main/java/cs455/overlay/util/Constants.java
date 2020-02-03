@@ -16,5 +16,7 @@ public class Constants {
     public static final String PRINT_COUNTERS_AND_DIAGNOSTICS
             = "print-counters-and-diagnostics";
     public static final String EXIT_OVERLAY = "exit-overlay";
+
+    public static final int MAX_NODES = 128;
 }
 

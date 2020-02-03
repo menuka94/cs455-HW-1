@@ -31,12 +31,13 @@ public class TCPConnection {
         try {
             tcpSender.sendData(data);
         } catch (IOException e) {
+            logger.error("Error while sending data ...");
             logger.error(e.getMessage());
         }
     }
 
-    public String getDestinationAddress() {
-        return socket.getInetAddress().getHostAddress();
+    public byte[] getDestinationAddress() {
+        return socket.getInetAddress().getAddress();
     }
 
     public int getDestinationPort() {

@@ -13,11 +13,13 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 public class MessagingNode implements Node {
+    private static final Logger logger = LogManager.getLogger(MessagingNode.class);
+
     private TCPConnection registryConnection;
     private TCPServerThread tcpServerThread;
     private TCPConnectionsCache tcpConnectionsCache;
     private InteractiveCommandParser commandParser;
-    private static final Logger logger = LogManager.getLogger(MessagingNode.class);
+    private int id;
 
     public MessagingNode(Socket registrySocket) throws IOException {
         registryConnection = new TCPConnection(registrySocket, this);
@@ -58,6 +60,14 @@ public class MessagingNode implements Node {
 
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     @Override
     public void onEvent(Event event) {
 
@@ -70,10 +80,19 @@ public class MessagingNode implements Node {
      * int: Port number
      */
     private void sendRegistrationRequestToRegistry() throws IOException {
+        logger.info("sendRegistrationRequestToRegistry()");
         OverlayNodeSendsRegistration message = new OverlayNodeSendsRegistration();
-        message.setIpAddressLength((byte) registryConnection.getLocalAddress().length);
-        message.setIpAddress(registryConnection.getLocalAddress());
-        message.setPort(registryConnection.getDestinationPort());
+        message.setIpAddressLength((byte) registryConnection.getSocket().
+                getLocalAddress().getAddress().length);
+        message.setIpAddress(registryConnection.getSocket().
+                getLocalAddress().getAddress());
+        message.setPort(tcpServerThread.getListeningPort());
+        if (registryConnection.getSocket() == null) {
+            logger.info("Registry socket is null");
+        } else {
+            logger.info("Registry socket is NOT null");
+        }
+        message.setSocket(registryConnection.getSocket());
 
         registryConnection.sendData(message.getBytes());
     }

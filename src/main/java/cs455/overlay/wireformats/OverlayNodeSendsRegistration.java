@@ -1,5 +1,6 @@
 package cs455.overlay.wireformats;
 
+import cs455.overlay.node.MessagingNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -10,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.Socket;
 
 
 public class OverlayNodeSendsRegistration extends Event {
@@ -18,9 +20,19 @@ public class OverlayNodeSendsRegistration extends Event {
     private byte ipAddressLength;
     private byte[] ipAddress;
     private int port;
+    private Socket socket;
+    private MessagingNode node;
 
     public OverlayNodeSendsRegistration() {
 
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 
     /**
@@ -29,7 +41,8 @@ public class OverlayNodeSendsRegistration extends Event {
      * byte[^^]: IP address; from InetAddress.getAddress()
      * int: Port number
      */
-    public OverlayNodeSendsRegistration(byte[] marshalledBytes) throws IOException {
+    public OverlayNodeSendsRegistration(byte[] marshalledBytes, MessagingNode node) throws IOException {
+        this.node = node;
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
         DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
@@ -46,6 +59,10 @@ public class OverlayNodeSendsRegistration extends Event {
         port = din.readInt();
         baInputStream.close();
         din.close();
+    }
+
+    public MessagingNode getNode() {
+        return node;
     }
 
     public void setIpAddressLength(byte ipAddressLength) {

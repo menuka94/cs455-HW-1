@@ -3,6 +3,7 @@ package cs455.overlay.transport;
 import java.io.DataInputStream;
 import java.io.IOException;
 import java.net.Socket;
+import cs455.overlay.node.MessagingNode;
 import cs455.overlay.node.Node;
 import cs455.overlay.util.Constants;
 import cs455.overlay.wireformats.EventFactory;
@@ -28,8 +29,7 @@ public class TCPReceiverThread extends Thread {
                 dataLength = din.readInt();
                 byte[] data = new byte[dataLength];
                 din.readFully(data, 0, dataLength);
-                // logger.info("readFully: " + data);
-                node.onEvent(EventFactory.getInstance().getEvent(data));
+                node.onEvent(EventFactory.getInstance().getEvent(data, socket, (MessagingNode) node));
             } catch (IOException se) {
                 logger.error(se.getStackTrace());
                 break;

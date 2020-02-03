@@ -1,16 +1,17 @@
 package cs455.overlay.wireformats;
 
 import java.net.Socket;
+import cs455.overlay.node.MessagingNode;
 
 public abstract class Event {
-    private Socket socket;
+    private MessagingNode messagingNode;
 
-    public Socket getSocket() {
-        return socket;
+    public MessagingNode getMessagingNode() {
+        return messagingNode;
     }
 
-    public void setSocket(Socket socket) {
-        this.socket = socket;
+    public void setMessagingNode(MessagingNode messagingNode) {
+        this.messagingNode = messagingNode;
     }
 
     public abstract byte[] getBytes();

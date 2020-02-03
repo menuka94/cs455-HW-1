@@ -1,9 +1,12 @@
 package cs455.overlay.wireformats;
 
+import java.net.Socket;
+
 public class NodeReportsOverlaySetupStatus extends Event {
     public NodeReportsOverlaySetupStatus(byte[] marshalledBytes) {
 
     }
+
 
     @Override
     public byte[] getBytes() {
