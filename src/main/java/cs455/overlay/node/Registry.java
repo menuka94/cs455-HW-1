@@ -7,6 +7,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.concurrent.LinkedBlockingQueue;
+
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
@@ -28,11 +29,14 @@ public class Registry implements Node {
     private HashMap<byte[], Integer> registeredNodes;
     private Random random;
 
+
     private Registry(int port) throws IOException {
         tcpServerThread = new TCPServerThread(port, this);
         tcpServerThread.start();
         commandParser = new InteractiveCommandParser(this);
         commandParser.start();
+        RegistryEventHandlerThread eventHandlerThread = new RegistryEventHandlerThread();
+        eventHandlerThread.start();
         eventQueue = new LinkedBlockingQueue<>();
         registeredNodes = new HashMap<byte[], Integer>();
         random = new Random();
@@ -43,33 +47,47 @@ public class Registry implements Node {
         Registry registry = new Registry(port);
     }
 
+    private class RegistryEventHandlerThread extends Thread {
+        @Override
+        public void run() {
+            while (true) {
+                try {
+                    Event event = eventQueue.take();
+                    int type = event.getType();
+
+                    switch (type) {
+                        case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
+                            registerOverlayNode(event);
+                            break;
+                        case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
+                            deregisterOverlayNode();
+                            break;
+                        case Protocol.OVERLAY_NODE_SENDS_DATA:
+                            respondToOverlayNodeSendsData();
+                            break;
+                        case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
+                            respondToNodeReportsOverlaySetupStatus();
+                            break;
+                        case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
+                            respondToOverlayNodeReportsTrafficSummary();
+                            break;
+                        case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
+                            respondToOverlayNodeReportsTaskFinished();
+                            break;
+                        default:
+                            logger.warn("Unknown event type: " + type);
+                            break;
+                    }
+                } catch (InterruptedException e) {
+                    logger.error(e.getStackTrace());
+                }
+            }
+        }
+    }
+
     @Override
     public void onEvent(Event event) {
-        int type = event.getType();
-
-        switch (type) {
-            case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
-                registerOverlayNode(event);
-                break;
-            case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
-                deregisterOverlayNode();
-                break;
-            case Protocol.OVERLAY_NODE_SENDS_DATA:
-                respondToOverlayNodeSendsData();
-                break;
-            case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
-                respondToNodeReportsOverlaySetupStatus();
-                break;
-            case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
-                respondToOverlayNodeReportsTrafficSummary();
-                break;
-            case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
-                respondToOverlayNodeReportsTaskFinished();
-                break;
-            default:
-                logger.warn("Unknown event type: " + type);
-                break;
-        }
+        eventQueue.offer(event);
     }
 
     public void listMessagingNodes() {
