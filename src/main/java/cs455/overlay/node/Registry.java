@@ -24,7 +24,6 @@ public class Registry implements Node {
     private int port;
     private InteractiveCommandParser commandParser;
     private TCPServerThread tcpServerThread;
-    private LinkedBlockingQueue<Event> eventQueue;
     private HashMap<byte[], Integer> registeredNodes;
     private Random random;
 
@@ -33,7 +32,6 @@ public class Registry implements Node {
         tcpServerThread.start();
         commandParser = new InteractiveCommandParser(this);
         commandParser.start();
-        eventQueue = new LinkedBlockingQueue<>();
         registeredNodes = new HashMap<byte[], Integer>();
         random = new Random();
     }
