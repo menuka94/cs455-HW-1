@@ -69,7 +69,7 @@ public class MessagingNode implements Node {
             connection = TCPConnectionsCache.getConnection(socket);
             logger.info("Connection found in TCPConnectionsCache");
         } else {
-            logger.info("Connection not found in TCPConnectionsCache." +
+            logger.info("Connection not found in TCPConnectionsCache. " +
                     "Creating a new connection");
             connection = new TCPConnection(socket, node);
         }

@@ -47,6 +47,8 @@ public class InteractiveCommandParser extends Thread {
             } else if (nextCommand.contains(Constants.SETUP_OVERLAY)) {
                 int tableEntries = Integer.parseInt(nextCommand.split(" ")[1]);
                 System.out.println("TODO: setup-overlay " + tableEntries);
+            } else if(nextCommand.trim().equals("")) {
+                continue;
             } else {
                 System.out.println("Invalid command for the registry: " + nextCommand);
             }

@@ -14,7 +14,7 @@ public class EventFactory {
 
     }
 
-    public static EventFactory getInstance() {
+    public synchronized static EventFactory getInstance() {
         instance = new EventFactory();
         return instance;
     }
