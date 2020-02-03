@@ -3,7 +3,6 @@ package cs455.overlay.wireformats;
 import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import cs455.overlay.node.MessagingNode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -20,14 +19,16 @@ public class EventFactory {
         return instance;
     }
 
-    public Event getEvent(byte[] data, Socket socket, MessagingNode messagingNode)
+    public Event getEvent(byte[] data, Socket socket)
             throws IOException {
-
-        switch (ByteBuffer.wrap(data).get(0)) {
+        logger.info("data length: " + data.length);
+        byte b = ByteBuffer.wrap(data).get(0);
+        logger.info((int) b);
+        switch ((int) b) {
             case Protocol.OVERLAY_NODE_SENDS_DATA:
                 return new OverlayNodeSendsData(data);
             case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
-                OverlayNodeSendsRegistration event = new OverlayNodeSendsRegistration(data, messagingNode);
+                OverlayNodeSendsRegistration event = new OverlayNodeSendsRegistration(data);
                 event.setSocket(socket);
                 return event;
             case Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS:

@@ -25,8 +25,7 @@ public class Registry implements Node {
     private InteractiveCommandParser commandParser;
     private TCPServerThread tcpServerThread;
     private LinkedBlockingQueue<Event> eventQueue;
-    private HashMap<byte[], MessagingNode> registeredNodes;
-    private HashMap<MessagingNode, Integer> registeredNodeIds;
+    private HashMap<byte[], Integer> registeredNodes;
     private Random random;
 
     private Registry(int port) throws IOException {
@@ -35,8 +34,7 @@ public class Registry implements Node {
         commandParser = new InteractiveCommandParser(this);
         commandParser.start();
         eventQueue = new LinkedBlockingQueue<>();
-        registeredNodes = new HashMap<>();
-        registeredNodeIds = new HashMap<>();
+        registeredNodes = new HashMap<byte[], Integer>();
         random = new Random();
     }
 
@@ -101,7 +99,6 @@ public class Registry implements Node {
     private void registerOverlayNode(Event event) {
         logger.info("registerOverlayNode()");
         OverlayNodeSendsRegistration overlayNodeSendsRegistration = (OverlayNodeSendsRegistration) event;
-        MessagingNode node = overlayNodeSendsRegistration.getNode();
         logger.info("IP Address Length: " + overlayNodeSendsRegistration.getIpAddressLength());
         System.out.println("IP Address: " +
                 new String(overlayNodeSendsRegistration.getIpAddress(), StandardCharsets.UTF_8));
@@ -123,19 +120,17 @@ public class Registry implements Node {
             responseEvent.setInfoString(infoString.getBytes());
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
         } else if (TCPConnectionsCache.containsConnection(socket)) {
-            if (registeredNodes.containsKey(socket.getInetAddress().getAddress()) ||
-                    registeredNodes.containsValue(node)) {
+            if (registeredNodes.containsKey(socket.getInetAddress().getAddress())) {
                 // checking if the node has already been registered
                 logger.warn("Node already registered");
                 responseEvent.setSuccessStatus(-1);
                 String infoString = "Node already registered";
                 responseEvent.setInfoString(infoString.getBytes());
                 responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
-            } else {
+            } else{
                 // proceed to register the node
                 randomNodeId = random.nextInt(Constants.MAX_NODES);
                 logger.info("Generated ID for new node: " + randomNodeId);
-                node.setId(randomNodeId);
                 responseEvent.setSuccessStatus(randomNodeId);
                 String infoString = "Registration request successful. " +
                         "The number of messaging nodes currently constituting the overlay " +
@@ -152,10 +147,7 @@ public class Registry implements Node {
         TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
         try {
             tcpConnection.sendData(responseEvent.getBytes());
-            registeredNodes.put(socket.getInetAddress().getAddress(), node);
-            if (randomNodeId != 0) {
-                registeredNodeIds.put(node, randomNodeId);
-            }
+            registeredNodes.put(socket.getInetAddress().getAddress(), randomNodeId);
         } catch (IOException e) {
             logger.error("Error sending ");
             logger.error(e.getStackTrace());

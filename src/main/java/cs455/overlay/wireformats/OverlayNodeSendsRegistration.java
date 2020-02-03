@@ -1,6 +1,7 @@
 package cs455.overlay.wireformats;
 
 import cs455.overlay.node.MessagingNode;
+import cs455.overlay.node.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -21,7 +22,6 @@ public class OverlayNodeSendsRegistration extends Event {
     private byte[] ipAddress;
     private int port;
     private Socket socket;
-    private MessagingNode node;
 
     public OverlayNodeSendsRegistration() {
 
@@ -41,8 +41,7 @@ public class OverlayNodeSendsRegistration extends Event {
      * byte[^^]: IP address; from InetAddress.getAddress()
      * int: Port number
      */
-    public OverlayNodeSendsRegistration(byte[] marshalledBytes, MessagingNode node) throws IOException {
-        this.node = node;
+    public OverlayNodeSendsRegistration(byte[] marshalledBytes) throws IOException {
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
         DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
@@ -59,10 +58,6 @@ public class OverlayNodeSendsRegistration extends Event {
         port = din.readInt();
         baInputStream.close();
         din.close();
-    }
-
-    public MessagingNode getNode() {
-        return node;
     }
 
     public void setIpAddressLength(byte ipAddressLength) {

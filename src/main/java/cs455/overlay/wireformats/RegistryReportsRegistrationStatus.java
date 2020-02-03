@@ -27,6 +27,7 @@ public class RegistryReportsRegistrationStatus extends Event {
      * byte[^^]: Information string; ASCII charset
      */
     public RegistryReportsRegistrationStatus(byte[] marshalledBytes) throws IOException {
+        logger.info("constructor()");
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
         DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
