@@ -4,8 +4,11 @@ import java.io.IOException;
 import java.net.Socket;
 import java.nio.ByteBuffer;
 import cs455.overlay.node.MessagingNode;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 public class EventFactory {
+    private static final Logger logger = LogManager.getLogger(EventFactory.class);
     private static EventFactory instance;
 
     private EventFactory() {
@@ -46,6 +49,7 @@ public class EventFactory {
             case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
                 return new OverlayNodeReportsTrafficSummary(data);
             default:
+                logger.error("Unknown event type");
                 return null;
         }
 
