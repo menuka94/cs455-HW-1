@@ -1,5 +1,6 @@
 package cs455.overlay.transport;
 
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.ServerSocket;
@@ -14,7 +15,7 @@ public class TCPSender {
 
     public TCPSender(Socket socket) throws IOException {
         this.socket = socket;
-        dout = new DataOutputStream(socket.getOutputStream());
+        dout = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
     }
 
     public void sendData(byte[] dataToSend) throws IOException {

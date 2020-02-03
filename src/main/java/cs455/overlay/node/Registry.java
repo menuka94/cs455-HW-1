@@ -145,6 +145,8 @@ public class Registry implements Node {
         TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
         try {
             logger.info("Actual length of data being sent: " + responseEvent.getBytes().length);
+            logger.info("Sending successStatus: " + responseEvent.getSuccessStatus());
+            logger.info("Sending");
             tcpConnection.sendData(responseEvent.getBytes());
             registeredNodes.put(socket.getInetAddress().getAddress(), randomNodeId);
         } catch (IOException e) {
