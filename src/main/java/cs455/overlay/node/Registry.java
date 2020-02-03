@@ -29,39 +29,6 @@ public class Registry implements Node {
     private HashMap<MessagingNode, Integer> registeredNodeIds;
     private Random random;
 
-    private class RegistryEventHandlerThread extends Thread {
-        private Logger logger = LogManager.getLogger(RegistryEventHandlerThread.class);
-
-        @Override
-        public void run() {
-            while (true) {
-                try {
-                    Event event = eventQueue.take();
-
-                    int type = event.getType();
-
-                    if (type == Protocol.OVERLAY_NODE_SENDS_REGISTRATION) {
-                        registerOverlayNode(event);
-                    } else if (type == Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION) {
-                        deregisterOverlayNode();
-                    } else if (type == Protocol.OVERLAY_NODE_SENDS_DATA) {
-                        respondToOverlayNodeSendsData();
-                    } else if (type == Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS) {
-                        respondToNodeReportsOverlaySetupStatus();
-                    } else if (type == Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY) {
-                        respondToOverlayNodeReportsTrafficSummary();
-                    } else if (type == Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED) {
-                        respondToOverlayNodeReportsTaskFinished();
-                    } else {
-                        logger.warn("Unknown event type: " + type);
-                    }
-                } catch (InterruptedException e) {
-                    logger.error(e.getStackTrace());
-                }
-            }
-        }
-    }
-
     private Registry(int port) throws IOException {
         tcpServerThread = new TCPServerThread(port, this);
         tcpServerThread.start();
@@ -71,19 +38,40 @@ public class Registry implements Node {
         registeredNodes = new HashMap<>();
         registeredNodeIds = new HashMap<>();
         random = new Random();
-        RegistryEventHandlerThread eventHandlerThread = new RegistryEventHandlerThread();
-        eventHandlerThread.start();
     }
 
     public static void main(String[] args) throws IOException {
-        logger.info("main()");
         int port = Integer.parseInt(args[0]);
         Registry registry = new Registry(port);
     }
 
     @Override
     public void onEvent(Event event) {
-        boolean offer = eventQueue.offer(event);
+        int type = event.getType();
+
+        switch (type) {
+            case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
+                registerOverlayNode(event);
+                break;
+            case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
+                deregisterOverlayNode();
+                break;
+            case Protocol.OVERLAY_NODE_SENDS_DATA:
+                respondToOverlayNodeSendsData();
+                break;
+            case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
+                respondToNodeReportsOverlaySetupStatus();
+                break;
+            case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
+                respondToOverlayNodeReportsTrafficSummary();
+                break;
+            case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
+                respondToOverlayNodeReportsTaskFinished();
+                break;
+            default:
+                logger.warn("Unknown event type: " + type);
+                break;
+        }
     }
 
     public void listMessagingNodes() {
