@@ -1,7 +1,5 @@
 package cs455.overlay.wireformats;
 
-import cs455.overlay.node.MessagingNode;
-import cs455.overlay.node.Node;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -55,8 +53,8 @@ public class OverlayNodeSendsRegistration extends Event {
         ipAddressLength = din.readByte();
         ipAddress = new byte[ipAddressLength];
         din.readFully(ipAddress, 0, ipAddressLength);
-
         port = din.readInt();
+
         baInputStream.close();
         din.close();
     }
@@ -100,7 +98,6 @@ public class OverlayNodeSendsRegistration extends Event {
             dout.flush();
 
             marshalledBytes = baOutputStream.toByteArray();
-
         } catch (IOException e) {
             logger.error(e.getStackTrace());
         } finally {

@@ -91,15 +91,13 @@ public class Registry implements Node {
     }
 
     private void deregisterOverlayNode() {
-
+        logger.info("deregisterOverlayNode");
     }
 
     private void registerOverlayNode(Event event) {
-        logger.info("registerOverlayNode()");
         OverlayNodeSendsRegistration overlayNodeSendsRegistration = (OverlayNodeSendsRegistration) event;
         logger.info("IP Address Length: " + overlayNodeSendsRegistration.getIpAddressLength());
-        System.out.println("IP Address: " +
-                new String(overlayNodeSendsRegistration.getIpAddress(), StandardCharsets.UTF_8));
+        System.out.println("IP Address: " + new String(overlayNodeSendsRegistration.getIpAddress()));
         System.out.println("Port: " + overlayNodeSendsRegistration.getPort());
         int randomNodeId = 0;
 
@@ -144,9 +142,6 @@ public class Registry implements Node {
 
         TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
         try {
-            logger.info("Actual length of data being sent: " + responseEvent.getBytes().length);
-            logger.info("Sending successStatus: " + responseEvent.getSuccessStatus());
-            logger.info("Sending");
             tcpConnection.sendData(responseEvent.getBytes());
             registeredNodes.put(socket.getInetAddress().getAddress(), randomNodeId);
         } catch (IOException e) {

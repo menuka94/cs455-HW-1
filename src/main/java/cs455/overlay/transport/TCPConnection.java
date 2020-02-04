@@ -55,9 +55,9 @@ public class TCPConnection {
     @Override
     public String toString() {
         return "TCPConnection{" +
-                "destinationAddress=" + getDestinationAddress() +
+                "destinationAddress=" + socket.getInetAddress().getHostAddress() +
                 ", destinationPort=" + getDestinationPort() +
-                ", localAddress=" + getLocalAddress() +
+                ", localAddress=" + socket.getLocalAddress().getHostAddress() +
                 ", localPort=" + getLocalPort() +
                 '}';
     }

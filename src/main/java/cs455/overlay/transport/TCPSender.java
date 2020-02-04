@@ -19,7 +19,6 @@ public class TCPSender {
     }
 
     public void sendData(byte[] dataToSend) throws IOException {
-        logger.info("Sending data: " + dataToSend);
         int dataLength = dataToSend.length;
         dout.writeInt(dataLength);
         dout.write(dataToSend, 0, dataLength);

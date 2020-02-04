@@ -27,10 +27,14 @@ public class TCPReceiverThread extends Thread {
         while (socket != null) {
             try {
                 dataLength = din.readInt();
-                logger.info("dataLength inside receiver's run(): " + dataLength);
                 byte[] data = new byte[dataLength];
                 din.readFully(data, 0, dataLength);
-                node.onEvent(EventFactory.getInstance().getEvent(data, socket));
+                if (node != null) {
+                    node.onEvent(EventFactory.getInstance().getEvent(data, socket));
+                } else {
+                    logger.error("Node is null");
+                    System.exit(1);
+                }
             } catch (IOException se) {
                 logger.error(se.getStackTrace());
                 break;

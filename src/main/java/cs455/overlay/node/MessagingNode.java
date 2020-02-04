@@ -8,10 +8,7 @@ import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
-import cs455.overlay.wireformats.Event;
-import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
-import cs455.overlay.wireformats.Protocol;
-import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
+import cs455.overlay.wireformats.*;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -131,18 +128,24 @@ public class MessagingNode implements Node {
      * int: Port number
      */
     private void sendRegistrationRequestToRegistry() throws IOException {
-        logger.info("sendRegistrationRequestToRegistry()");
         OverlayNodeSendsRegistration message = new OverlayNodeSendsRegistration();
         message.setIpAddressLength((byte) registryConnection.getSocket().
                 getLocalAddress().getAddress().length);
         message.setIpAddress(registryConnection.getSocket().
                 getLocalAddress().getAddress());
         message.setPort(tcpServerThread.getListeningPort());
-        if (registryConnection.getSocket() == null) {
-            logger.info("Registry socket is null");
-        } else {
-            logger.info("Registry socket is NOT null");
-        }
+        message.setSocket(registryConnection.getSocket());
+
+        registryConnection.sendData(message.getBytes());
+    }
+
+    public void exitOverlay() throws IOException {
+        OverlayNodeSendsDeregistration message = new OverlayNodeSendsDeregistration();
+        message.setIpAddressLength((byte) registryConnection.getSocket().
+                getLocalAddress().getAddress().length);
+        message.setIpAddress(registryConnection.getSocket().
+                getLocalAddress().getAddress());
+        message.setPort(tcpServerThread.getListeningPort());
         message.setSocket(registryConnection.getSocket());
 
         registryConnection.sendData(message.getBytes());
