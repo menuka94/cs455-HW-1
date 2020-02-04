@@ -115,7 +115,7 @@ public class Registry implements Node {
             responseEvent.setSuccessStatus(-1);
             String infoString = "mismatch in the address in the registration " +
                     "request and the one in the request (the socket’s input stream)";
-            responseEvent.setInfoString(infoString.getBytes());
+            responseEvent.setInfoString(infoString);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
         } else if (TCPConnectionsCache.containsConnection(socket)) {
             if (registeredNodes.containsKey(socket.getInetAddress().getAddress())) {
@@ -123,7 +123,7 @@ public class Registry implements Node {
                 logger.warn("Node already registered");
                 responseEvent.setSuccessStatus(-1);
                 String infoString = "Node already registered";
-                responseEvent.setInfoString(infoString.getBytes());
+                responseEvent.setInfoString(infoString);
                 responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             } else {
                 // proceed to register the node
@@ -132,8 +132,8 @@ public class Registry implements Node {
                 responseEvent.setSuccessStatus(randomNodeId);
                 String infoString = "Registration request successful. " +
                         "The number of messaging nodes currently constituting the overlay " +
-                        "is (" + registeredNodes.size() + ")";
-                responseEvent.setInfoString(infoString.getBytes());
+                        "is (" + (registeredNodes.size() + 1) + ")";
+                responseEvent.setInfoString(infoString);
                 responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             }
         } else {

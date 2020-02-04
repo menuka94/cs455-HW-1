@@ -12,13 +12,31 @@ import org.apache.logging.log4j.Logger;
 
 public class RegistryReportsRegistrationStatus extends Event {
     private static final Logger logger = LogManager.getLogger(RegistryReportsRegistrationStatus.class);
-    private byte messageType;
+    private int messageType;
     private int successStatus;
     private byte lengthOfInfoString;
-    private byte[] infoString;
+    private String infoString;
+
+    public static void main(String[] args) throws IOException {
+        RegistryReportsRegistrationStatus event = new RegistryReportsRegistrationStatus();
+        String infoString = "test infoString";
+        event.setInfoString(infoString);
+        event.setLengthOfInfoString((byte) infoString.getBytes().length);
+        event.setMessageType((byte) event.getType());
+        event.setSuccessStatus(124);
+
+        byte[] marshalledBytes = event.getBytes();
+        RegistryReportsRegistrationStatus unmarshalledEvent = new RegistryReportsRegistrationStatus(marshalledBytes);
+        System.out.println("infoString: " + unmarshalledEvent.infoString);
+        System.out.println("messageType: " +  unmarshalledEvent.getType());
+        System.out.println("Success Status: " + unmarshalledEvent.getSuccessStatus());
+
+    }
 
     public RegistryReportsRegistrationStatus() {
     }
+
+
 
     /**
      * byte: Message type (REGISTRY_REPORTS_REGISTRATION_STATUS)
@@ -27,7 +45,6 @@ public class RegistryReportsRegistrationStatus extends Event {
      * byte[^^]: Information string; ASCII charset
      */
     public RegistryReportsRegistrationStatus(byte[] marshalledBytes) throws IOException {
-        logger.info("constructor()");
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
         DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
@@ -38,8 +55,10 @@ public class RegistryReportsRegistrationStatus extends Event {
 
         successStatus = din.readInt();
         lengthOfInfoString = din.readByte();
-        infoString = new byte[lengthOfInfoString];
-        din.readFully(infoString, 0, lengthOfInfoString);
+        byte[] byteInfoString = new byte[lengthOfInfoString];
+        din.readFully(byteInfoString, 0, lengthOfInfoString);
+
+        infoString = new String(byteInfoString);
 
         baInputStream.close();
         din.close();
@@ -55,7 +74,7 @@ public class RegistryReportsRegistrationStatus extends Event {
             dout.writeByte(getType());
             dout.writeInt(successStatus);
             dout.writeByte(lengthOfInfoString);
-            dout.write(infoString);
+            dout.write(infoString.getBytes());
 
             dout.flush();
 
@@ -90,11 +109,15 @@ public class RegistryReportsRegistrationStatus extends Event {
         this.lengthOfInfoString = lengthOfInfoString;
     }
 
-    public byte[] getInfoString() {
+    public String getInfoString() {
         return infoString;
     }
 
-    public void setInfoString(byte[] infoString) {
+    public void setInfoString(String infoString) {
         this.infoString = infoString;
+    }
+
+    public void setMessageType(int messageType) {
+        this.messageType = messageType;
     }
 }
