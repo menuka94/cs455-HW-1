@@ -48,7 +48,8 @@ public class OverlayNodeSendsRegistration extends Event {
         byte messageType = din.readByte();
 
         if (messageType != Protocol.OVERLAY_NODE_SENDS_REGISTRATION) {
-            logger.warn("Unexpected message type: " + ProtocolLookup.getEventLiteral(Byte.toUnsignedInt(messageType)));
+            logger.warn("Unexpected message type: " + ProtocolLookup.
+                    getEventLiteral(Byte.toUnsignedInt(messageType)));
         }
 
         ipAddressLength = din.readByte();
@@ -100,10 +101,15 @@ public class OverlayNodeSendsRegistration extends Event {
 
             marshalledBytes = baOutputStream.toByteArray();
 
-            baOutputStream.close();
-            dout.close();
         } catch (IOException e) {
             logger.error(e.getStackTrace());
+        } finally {
+            try {
+                baOutputStream.close();
+                dout.close();
+            } catch (IOException e) {
+                logger.error(e.getStackTrace());
+            }
         }
 
         return marshalledBytes;
