@@ -44,6 +44,7 @@ public class Registry implements Node {
     @Override
     public void onEvent(Event event) {
         int type = event.getType();
+        logger.info("onEvent: event type: " + type);
 
         switch (type) {
             case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:

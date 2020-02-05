@@ -15,6 +15,7 @@ import java.net.Socket;
 public class OverlayNodeSendsDeregistration extends Event {
     private static final Logger logger = LogManager.getLogger(OverlayNodeSendsDeregistration.class);
 
+    private byte messageType;
     private byte ipAddressLength;
     private byte[] ipAddress;
     private int port;
@@ -35,7 +36,7 @@ public class OverlayNodeSendsDeregistration extends Event {
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
         DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
-        byte messageType = din.readByte();
+        messageType = din.readByte();
 
         if (messageType != Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION) {
             logger.warn("Unexpected message type: " + ProtocolLookup.
@@ -84,6 +85,14 @@ public class OverlayNodeSendsDeregistration extends Event {
         this.socket = socket;
     }
 
+    public byte getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(byte messageType) {
+        this.messageType = messageType;
+    }
+
     @Override
     public byte[] getBytes() {
         byte[] marshalledBytes = null;
@@ -91,7 +100,7 @@ public class OverlayNodeSendsDeregistration extends Event {
         DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
 
         try {
-            dout.writeInt(getType());
+            dout.writeByte(getType());
             dout.writeByte(ipAddressLength);
             dout.write(ipAddress);
             dout.writeInt(port);
