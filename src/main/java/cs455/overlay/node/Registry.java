@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Random;
+import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
@@ -27,6 +28,7 @@ public class Registry implements Node {
     private TCPServerThread tcpServerThread;
     private HashMap<Integer, Socket> registeredNodes;
     private Random random;
+    private HashMap<Integer, RoutingTable> routingTables;
 
     private Registry(int port) throws IOException {
         this.port = port;
@@ -198,11 +200,12 @@ public class Registry implements Node {
         }
     }
 
-    public void setupOverlay(int tableSize) {
+    public void setupOverlay(final int tableSize) {
+        routingTables = new HashMap<>();
         Collection<Integer> nodeIds = registeredNodes.keySet();
         logger.info("Available Node IDs");
         for (Integer nodeId : nodeIds) {
-            logger.info(nodeId);
+            RoutingTable routingTable = new RoutingTable(tableSize);
         }
     }
 }

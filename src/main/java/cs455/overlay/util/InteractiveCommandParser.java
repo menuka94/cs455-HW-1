@@ -56,7 +56,20 @@ public class InteractiveCommandParser extends Thread {
                 int numberOfMessages = Integer.parseInt(nextCommand.split(" ")[1]);
                 System.out.println("TODO: Start " + numberOfMessages);
             } else if (nextCommand.contains(Constants.SETUP_OVERLAY)) {
-                int tableSize = Integer.parseInt(nextCommand.split(" ")[1]);
+                String[] args = nextCommand.split("\\s+");
+                int tableSize = 0;
+                if (args.length == 2) {
+                    try {
+                        tableSize = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Enter a whole number as the table size");
+                        continue;
+                    }
+                } else {
+                    System.out.println("Table size not provided. Proceeding with the default " +
+                            "value: 3");
+                    tableSize = 3;
+                }
                 registry.setupOverlay(tableSize);
             } else if (nextCommand.trim().equals("")) {
                 continue;
