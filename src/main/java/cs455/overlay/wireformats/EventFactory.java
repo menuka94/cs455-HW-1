@@ -16,7 +16,9 @@ public class EventFactory {
     }
 
     public synchronized static EventFactory getInstance() {
-        instance = new EventFactory();
+        if (instance == null) {
+            instance = new EventFactory();
+        }
         return instance;
     }
 
@@ -42,18 +44,25 @@ public class EventFactory {
                 deregistrationEvent.setSocket(socket);
                 return deregistrationEvent;
             case Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS:
+                logger.info("REGISTRY_REPORTS_DEREGISTRATION_STATUS");
                 return new RegistryReportsDeregistrationStatus(data);
             case Protocol.REGISTRY_SENDS_NODE_MANIFEST:
+                logger.info("REGISTRY_SENDS_NODE_MANIFEST");
                 return new RegistrySendsNodeManifest(data);
             case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
+                logger.info("NODE_REPORTS_OVERLAY_SETUP_STATUS");
                 return new NodeReportsOverlaySetupStatus(data);
             case Protocol.REGISTRY_REQUESTS_TASK_INITIATE:
+                logger.info("REGISTRY_REQUESTS_TASK_INITIATE");
                 return new RegistryRequestsTaskInitiate(data);
             case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
+                logger.info("OVERLAY_NODE_REPORTS_TASK_FINISHED");
                 return new OverlayNodeReportsTaskFinished(data);
             case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
+                logger.info("REGISTRY_REQUESTS_TRAFFIC_SUMMARY");
                 return new RegistryRequestsTrafficSummary(data);
             case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
+                logger.info("OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY");
                 return new OverlayNodeReportsTrafficSummary(data);
             default:
                 logger.error("Unknown event type");
