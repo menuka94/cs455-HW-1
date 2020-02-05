@@ -1,5 +1,6 @@
 package cs455.overlay.wireformats;
 
+import cs455.overlay.util.Validator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -39,11 +40,7 @@ public class OverlayNodeSendsDeregistration extends Event {
 
         messageType = din.readByte();
 
-        if (messageType != Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION) {
-            logger.warn("Unexpected message type: " + ProtocolLookup.
-                    getEventLiteral(Byte.toUnsignedInt(messageType)));
-        }
-
+        Validator.validateEventType(messageType, Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION, logger);
 
         ipAddressLength = din.readByte();
         ipAddress = new byte[ipAddressLength];

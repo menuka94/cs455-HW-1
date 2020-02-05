@@ -17,4 +17,9 @@ public class RoutingEntry {
     public int getNodeId() {
         return nodeId;
     }
+
+    @Override
+    public String toString() {
+        return nodeId + "\t\t" + distance;
+    }
 }
