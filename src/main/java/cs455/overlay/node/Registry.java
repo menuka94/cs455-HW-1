@@ -125,7 +125,7 @@ public class Registry implements Node {
             registeredNodes.remove(socket.getInetAddress().getAddress());
             String infoString = "Deregistration request successful. " +
                     "The number of messaging nodes currently constituting the overlay " +
-                    "is (" + registeredNodes.size() + ")";
+                    "is (" + (registeredNodes.size() - 1) + ")";
             responseEvent.setSuccessStatus(nodeId);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             responseEvent.setInfoString(infoString);

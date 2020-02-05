@@ -15,9 +15,11 @@ public class InteractiveCommandParser extends Thread {
     private boolean acceptingCommands;
     private boolean isRegistry;
     private Node node;
+    private Scanner scanner;
 
     public InteractiveCommandParser(Node node) {
         this.node = node;
+        scanner = new Scanner(System.in);
         acceptingCommands = true;
         if (node instanceof Registry) {
             isRegistry = true;
@@ -28,21 +30,20 @@ public class InteractiveCommandParser extends Thread {
 
     @Override
     public void run() {
-        Scanner scanner = new Scanner(System.in);
         if (isRegistry) {
             System.out.println("Enter commands for the registry: ");
-            parseRegistryCommands(scanner);
+            parseRegistryCommands();
         } else {
             System.out.println("Enter commands for the messaging node: ");
             try {
-                parseMessagingNodeCommands(scanner);
+                parseMessagingNodeCommands();
             } catch (IOException e) {
                 logger.error(e.getStackTrace());
             }
         }
     }
 
-    private void parseRegistryCommands(Scanner scanner) {
+    private void parseRegistryCommands() {
         String nextCommand;
         Registry registry = (Registry) node;
         while (acceptingCommands) {
@@ -64,10 +65,11 @@ public class InteractiveCommandParser extends Thread {
             }
         }
 
+        logger.info("Shutting down the registry ...");
         scanner.close();
     }
 
-    private void parseMessagingNodeCommands(Scanner scanner) throws IOException {
+    private void parseMessagingNodeCommands() throws IOException {
         String nextCommand;
         MessagingNode messagingNode = (MessagingNode) node;
         while (acceptingCommands) {
@@ -80,7 +82,21 @@ public class InteractiveCommandParser extends Thread {
                 System.out.println("Invalid command for messaging node: " + nextCommand);
             }
         }
-
+        logger.info("Shutting down node ...");
         scanner.close();
+    }
+
+    public void stopAcceptingCommands() {
+        acceptingCommands = false;
+        if (isRegistry) {
+            parseRegistryCommands();
+        } else {
+            try {
+                parseMessagingNodeCommands();
+            } catch (IOException e) {
+                logger.error("Error stopping interactive command parser");
+                logger.error(e.getStackTrace());
+            }
+        }
     }
 }

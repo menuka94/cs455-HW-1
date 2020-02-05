@@ -26,8 +26,12 @@ public class TCPConnectionsCache {
 
     public static void printConnections() {
         Set<Socket> sockets = cachedConnections.keySet();
-        for (Socket socket : sockets) {
-            System.out.println(cachedConnections.get(socket));
+        if (sockets.size() == 0) {
+            System.out.println("No messaging nodes have been registered");
+        } else {
+            for (Socket socket : sockets) {
+                System.out.println(cachedConnections.get(socket));
+            }
         }
     }
 }

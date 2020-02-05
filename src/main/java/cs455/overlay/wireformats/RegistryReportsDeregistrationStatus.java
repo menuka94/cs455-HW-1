@@ -4,6 +4,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.*;
+import java.net.Socket;
 
 public class RegistryReportsDeregistrationStatus extends Event {
     private final Logger logger = LogManager.getLogger(RegistryReportsDeregistrationStatus.class);
@@ -12,6 +13,7 @@ public class RegistryReportsDeregistrationStatus extends Event {
     private int successStatus;
     private byte lengthOfInfoString;
     private String infoString;
+    private Socket socket;
 
     public static void main(String[] args) {
 
@@ -48,6 +50,14 @@ public class RegistryReportsDeregistrationStatus extends Event {
         din.close();
     }
 
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
+    }
+
     public int getMessageType() {
         return messageType;
     }
@@ -62,6 +72,14 @@ public class RegistryReportsDeregistrationStatus extends Event {
 
     public void setInfoString(String infoString) {
         this.infoString = infoString;
+    }
+
+    public int getSuccessStatus() {
+        return successStatus;
+    }
+
+    public String getInfoString() {
+        return infoString;
     }
 
     @Override

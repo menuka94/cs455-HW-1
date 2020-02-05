@@ -31,19 +31,6 @@ public class MessagingNode implements Node {
         sendRegistrationRequestToRegistry();
     }
 
-    private void handleRegistryReportsRegistrationStatus(Event event) {
-        RegistryReportsRegistrationStatus registrationStatus = (RegistryReportsRegistrationStatus) event;
-        int successStatus = registrationStatus.getSuccessStatus();
-        if (successStatus == -1) {
-            logger.info("Registration failed!");
-            logger.info(registrationStatus.getInfoString());
-            System.exit(-1);
-        } else {
-            logger.info("Registration successful!");
-            setNodeId(successStatus);
-            logger.info(registrationStatus.getInfoString());
-        }
-    }
 
     public static void main(String[] args) throws IOException {
 
@@ -116,8 +103,43 @@ public class MessagingNode implements Node {
 
     }
 
-    private void handleRegistryReportsDeregistrationStatus(Event event) {
+    private void handleRegistryReportsRegistrationStatus(Event event) {
+        RegistryReportsRegistrationStatus registrationStatus =
+                (RegistryReportsRegistrationStatus) event;
+        int successStatus = registrationStatus.getSuccessStatus();
+        if (successStatus == -1) {
+            logger.info("Registration failed!");
+            logger.info(registrationStatus.getInfoString());
+            System.exit(-1);
+        } else {
+            logger.info("Registration successful!");
+            setNodeId(successStatus);
+            logger.info(registrationStatus.getInfoString());
+        }
+    }
 
+    private void handleRegistryReportsDeregistrationStatus(Event event) {
+        RegistryReportsDeregistrationStatus deregistrationStatus =
+                (RegistryReportsDeregistrationStatus) event;
+        int successStatus = deregistrationStatus.getSuccessStatus();
+        if (successStatus == -1) {
+            logger.info("Deregistration failed");
+            logger.info(deregistrationStatus.getInfoString());
+        } else if (successStatus == getNodeId()) {
+            logger.info("Deregistration successful!");
+            logger.info(deregistrationStatus.getInfoString());
+            commandParser.stopAcceptingCommands();
+            Socket socket = deregistrationStatus.getSocket();
+            try {
+                socket.close();
+            } catch (IOException e) {
+                logger.error(e.getStackTrace());
+            }
+            // TODO: properly stop commandParser thread
+            commandParser.stop();
+        } else {
+            logger.warn("Deregistration failed. Reason unknown.");
+        }
     }
 
     /**
