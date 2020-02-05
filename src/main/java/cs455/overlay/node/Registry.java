@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.Set;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
@@ -201,8 +200,9 @@ public class Registry implements Node {
 
     public void setupOverlay(int tableSize) {
         Collection<Integer> nodeIds = registeredNodes.keySet();
+        logger.info("Available Node IDs");
         for (Integer nodeId : nodeIds) {
-
+            logger.info(nodeId);
         }
     }
 }
