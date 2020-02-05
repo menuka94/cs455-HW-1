@@ -2,19 +2,19 @@ package cs455.overlay.node;
 
 import java.io.IOException;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.concurrent.LinkedBlockingQueue;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.Constants;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -28,6 +28,7 @@ public class Registry implements Node {
     private Random random;
 
     private Registry(int port) throws IOException {
+        this.port = port;
         tcpServerThread = new TCPServerThread(port, this);
         tcpServerThread.start();
         commandParser = new InteractiveCommandParser(this);
@@ -51,7 +52,7 @@ public class Registry implements Node {
                 registerOverlayNode(event);
                 break;
             case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
-                deregisterOverlayNode();
+                deregisterOverlayNode(event);
                 break;
             case Protocol.OVERLAY_NODE_SENDS_DATA:
                 respondToOverlayNodeSendsData();
@@ -91,12 +92,57 @@ public class Registry implements Node {
 
     }
 
-    private void deregisterOverlayNode() {
-        logger.info("deregisterOverlayNode");
+    private void deregisterOverlayNode(Event event) {
+        OverlayNodeSendsDeregistration overlayNodeSendsDeregistration =
+                (OverlayNodeSendsDeregistration) event;
+        Socket socket = overlayNodeSendsDeregistration.getSocket();
+        int nodeId = overlayNodeSendsDeregistration.getNodeId();
+
+        RegistryReportsDeregistrationStatus responseEvent = new RegistryReportsDeregistrationStatus();
+
+        // IP address check
+        byte[] deregistrationEventIpAddress = overlayNodeSendsDeregistration.getIpAddress();
+        if (!Arrays.equals(deregistrationEventIpAddress,
+                socket.getInetAddress().getAddress())) {
+            // Checking if there is a mismatch in the address that is specified in the registration
+            // request and the IP address of the request (the socket’s input stream).
+            String infoString = "mismatch in the address in the registration " +
+                    "request and the one in the request (the socket’s input stream)";
+            logger.warn(infoString);
+            responseEvent.setSuccessStatus(-1);
+            responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+            responseEvent.setInfoString(infoString);
+        } else if (!TCPConnectionsCache.containsConnection(socket)) {
+            String infoString = "Connection not found in TCPConnectionsCache";
+            logger.warn(infoString);
+            responseEvent.setSuccessStatus(-1);
+            responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+            responseEvent.setInfoString(infoString);
+        } else if (!registeredNodes.containsValue(nodeId)) {
+            logger.warn("Node ID (" + nodeId + ") not registered with the Registry");
+        } else {
+            // Everything is OK. Proceed to deregister the node
+            registeredNodes.remove(socket.getInetAddress().getAddress());
+            String infoString = "Deregistration request successful. " +
+                    "The number of messaging nodes currently constituting the overlay " +
+                    "is (" + registeredNodes.size() + ")";
+            responseEvent.setSuccessStatus(nodeId);
+            responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+            responseEvent.setInfoString(infoString);
+        }
+
+        TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+        try {
+            tcpConnection.sendData(responseEvent.getBytes());
+            TCPConnectionsCache.removeConnection(socket);
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        }
     }
 
     private void registerOverlayNode(Event event) {
-        OverlayNodeSendsRegistration overlayNodeSendsRegistration = (OverlayNodeSendsRegistration) event;
+        OverlayNodeSendsRegistration overlayNodeSendsRegistration =
+                (OverlayNodeSendsRegistration) event;
         logger.info("IP Address Length: " + overlayNodeSendsRegistration.getIpAddressLength());
         System.out.println("IP Address: " + new String(overlayNodeSendsRegistration.getIpAddress()));
         System.out.println("Port: " + overlayNodeSendsRegistration.getPort());

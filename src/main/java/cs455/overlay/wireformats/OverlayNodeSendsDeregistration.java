@@ -19,6 +19,7 @@ public class OverlayNodeSendsDeregistration extends Event {
     private byte ipAddressLength;
     private byte[] ipAddress;
     private int port;
+    private int nodeId;
     private Socket socket;
 
     public OverlayNodeSendsDeregistration() {
@@ -48,9 +49,14 @@ public class OverlayNodeSendsDeregistration extends Event {
         ipAddress = new byte[ipAddressLength];
         din.readFully(ipAddress, 0, ipAddressLength);
         port = din.readInt();
+        nodeId = din.readInt();
 
         baInputStream.close();
         din.close();
+    }
+
+    public void setNodeId(int nodeId) {
+        this.nodeId = nodeId;
     }
 
     public byte getIpAddressLength() {
@@ -93,6 +99,10 @@ public class OverlayNodeSendsDeregistration extends Event {
         this.messageType = messageType;
     }
 
+    public int getNodeId() {
+        return nodeId;
+    }
+
     @Override
     public byte[] getBytes() {
         byte[] marshalledBytes = null;
@@ -104,6 +114,7 @@ public class OverlayNodeSendsDeregistration extends Event {
             dout.writeByte(ipAddressLength);
             dout.write(ipAddress);
             dout.writeInt(port);
+            dout.writeInt(nodeId);
 
             dout.flush();
 

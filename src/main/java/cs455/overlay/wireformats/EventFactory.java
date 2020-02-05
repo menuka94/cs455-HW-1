@@ -40,9 +40,6 @@ public class EventFactory {
                 logger.info("OVERLAY_NODE_SENDS_DEREGISTRATION");
                 OverlayNodeSendsDeregistration deregistrationEvent = new OverlayNodeSendsDeregistration(data);
                 deregistrationEvent.setSocket(socket);
-                if(deregistrationEvent == null) {
-                    logger.info("deregistrationEvent is null");
-                }
                 return deregistrationEvent;
             case Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS:
                 return new RegistryReportsDeregistrationStatus(data);

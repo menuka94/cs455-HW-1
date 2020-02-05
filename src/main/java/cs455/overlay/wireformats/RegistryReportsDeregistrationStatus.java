@@ -9,21 +9,22 @@ public class RegistryReportsDeregistrationStatus extends Event {
     private final Logger logger = LogManager.getLogger(RegistryReportsDeregistrationStatus.class);
 
     private int messageType;
-    private byte ipAddressLength;
-    private byte[] ipAddress;
-    int port;
-    int nodeId;
+    private int successStatus;
+    private byte lengthOfInfoString;
+    private String infoString;
 
     public static void main(String[] args) {
 
     }
 
+    public RegistryReportsDeregistrationStatus() {
+    }
+
     /**
-     * byte: Message Type (OVERLAY_NODE_SENDS_DEREGISTRATION)
-     * byte: length of following "IP address" field
-     * byte[^^]: IP address; from InetAddress.getAddress()
-     * int: Port number
-     * int: assigned Node ID
+     * byte: Message type (REGISTRY_REPORTS_DEREGISTRATION_STATUS)
+     * int: Success status; Assigned ID if successful, -1 in case of a failure
+     * byte: Length of following "Information string" field
+     * byte[^^]: Information string; ASCII charset
      */
     public RegistryReportsDeregistrationStatus(byte[] marshalledBytes) throws IOException {
         ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
@@ -36,12 +37,13 @@ public class RegistryReportsDeregistrationStatus extends Event {
                     getEventLiteral(Byte.toUnsignedInt(messageType)));
         }
 
-        ipAddressLength = din.readByte();
-        ipAddress = new byte[ipAddressLength];
-        din.readFully(ipAddress, 0, ipAddressLength);
+        successStatus = din.readInt();
+        lengthOfInfoString = din.readByte();
+        byte[] byteInfoString = new byte[lengthOfInfoString];
+        din.readFully(byteInfoString, 0, lengthOfInfoString);
 
-        port = din.readInt();
-        nodeId = din.readInt();
+        infoString = new String(byteInfoString);
+
         baInputStream.close();
         din.close();
     }
@@ -50,16 +52,16 @@ public class RegistryReportsDeregistrationStatus extends Event {
         return messageType;
     }
 
-    public byte[] getIpAddress() {
-        return ipAddress;
+    public void setSuccessStatus(int successStatus) {
+        this.successStatus = successStatus;
     }
 
-    public int getPort() {
-        return port;
+    public void setLengthOfInfoString(byte lengthOfInfoString) {
+        this.lengthOfInfoString = lengthOfInfoString;
     }
 
-    public int getNodeId() {
-        return nodeId;
+    public void setInfoString(String infoString) {
+        this.infoString = infoString;
     }
 
     @Override
@@ -70,10 +72,9 @@ public class RegistryReportsDeregistrationStatus extends Event {
 
         try {
             dout.writeByte(getType());
-            dout.write(ipAddressLength);
-            dout.write(ipAddress);
-            dout.writeInt(port);
-            dout.writeInt(nodeId);
+            dout.writeInt(successStatus);
+            dout.writeByte(lengthOfInfoString);
+            dout.write(infoString.getBytes());
 
             dout.flush();
 

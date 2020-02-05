@@ -28,14 +28,13 @@ public class RegistryReportsRegistrationStatus extends Event {
         byte[] marshalledBytes = event.getBytes();
         RegistryReportsRegistrationStatus unmarshalledEvent = new RegistryReportsRegistrationStatus(marshalledBytes);
         System.out.println("infoString: " + unmarshalledEvent.infoString);
-        System.out.println("messageType: " +  unmarshalledEvent.getType());
+        System.out.println("messageType: " + unmarshalledEvent.getType());
         System.out.println("Success Status: " + unmarshalledEvent.getSuccessStatus());
 
     }
 
     public RegistryReportsRegistrationStatus() {
     }
-
 
 
     /**
@@ -79,10 +78,15 @@ public class RegistryReportsRegistrationStatus extends Event {
             dout.flush();
 
             marshalledBytes = baOutputStream.toByteArray();
-            baOutputStream.close();
-            dout.close();
         } catch (IOException e) {
             logger.error(e.getStackTrace());
+        } finally {
+            try {
+                baOutputStream.close();
+                dout.close();
+            } catch (IOException e) {
+                logger.error(e.getStackTrace());
+            }
         }
 
         return marshalledBytes;
