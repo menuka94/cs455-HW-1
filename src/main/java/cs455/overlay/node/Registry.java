@@ -3,8 +3,10 @@ package cs455.overlay.node;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Set;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
@@ -24,7 +26,7 @@ public class Registry implements Node {
     private int port;
     private InteractiveCommandParser commandParser;
     private TCPServerThread tcpServerThread;
-    private HashMap<byte[], Integer> registeredNodes;
+    private HashMap<Integer, Socket> registeredNodes;
     private Random random;
 
     private Registry(int port) throws IOException {
@@ -33,7 +35,7 @@ public class Registry implements Node {
         tcpServerThread.start();
         commandParser = new InteractiveCommandParser(this);
         commandParser.start();
-        registeredNodes = new HashMap<byte[], Integer>();
+        registeredNodes = new HashMap<>();
         random = new Random();
     }
 
@@ -118,11 +120,11 @@ public class Registry implements Node {
             responseEvent.setSuccessStatus(-1);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             responseEvent.setInfoString(infoString);
-        } else if (!registeredNodes.containsValue(nodeId)) {
+        } else if (!registeredNodes.containsKey(nodeId)) {
             logger.warn("Node ID (" + nodeId + ") not registered with the Registry");
         } else {
             // Everything is OK. Proceed to deregister the node
-            registeredNodes.remove(socket.getInetAddress().getAddress());
+            registeredNodes.remove(socket);
             String infoString = "Deregistration request successful. " +
                     "The number of messaging nodes currently constituting the overlay " +
                     "is (" + (registeredNodes.size() - 1) + ")";
@@ -163,7 +165,7 @@ public class Registry implements Node {
             responseEvent.setInfoString(infoString);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
         } else if (TCPConnectionsCache.containsConnection(socket)) {
-            if (registeredNodes.containsKey(socket.getInetAddress().getAddress())) {
+            if (registeredNodes.containsValue(socket)) {
                 // checking if the node has already been registered
                 logger.warn("Node already registered");
                 responseEvent.setSuccessStatus(-1);
@@ -190,10 +192,17 @@ public class Registry implements Node {
         TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
         try {
             tcpConnection.sendData(responseEvent.getBytes());
-            registeredNodes.put(socket.getInetAddress().getAddress(), randomNodeId);
+            registeredNodes.put(randomNodeId, socket);
         } catch (IOException e) {
             logger.error("Error sending ");
             logger.error(e.getStackTrace());
+        }
+    }
+
+    public void setupOverlay(int tableSize) {
+        Collection<Integer> nodeIds = registeredNodes.keySet();
+        for (Integer nodeId : nodeIds) {
+
         }
     }
 }

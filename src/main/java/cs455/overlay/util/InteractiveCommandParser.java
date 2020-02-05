@@ -56,8 +56,8 @@ public class InteractiveCommandParser extends Thread {
                 int numberOfMessages = Integer.parseInt(nextCommand.split(" ")[1]);
                 System.out.println("TODO: Start " + numberOfMessages);
             } else if (nextCommand.contains(Constants.SETUP_OVERLAY)) {
-                int tableEntries = Integer.parseInt(nextCommand.split(" ")[1]);
-                System.out.println("TODO: setup-overlay " + tableEntries);
+                int tableSize = Integer.parseInt(nextCommand.split(" ")[1]);
+                registry.setupOverlay(tableSize);
             } else if (nextCommand.trim().equals("")) {
                 continue;
             } else {

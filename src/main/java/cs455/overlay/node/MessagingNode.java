@@ -130,11 +130,6 @@ public class MessagingNode implements Node {
             logger.info(deregistrationStatus.getInfoString());
             commandParser.stopAcceptingCommands();
             Socket socket = deregistrationStatus.getSocket();
-            try {
-                socket.close();
-            } catch (IOException e) {
-                logger.error(e.getStackTrace());
-            }
             // TODO: properly stop commandParser thread
             commandParser.stop();
         } else {
