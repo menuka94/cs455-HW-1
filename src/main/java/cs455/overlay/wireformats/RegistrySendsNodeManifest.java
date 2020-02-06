@@ -76,6 +76,36 @@ public class RegistrySendsNodeManifest extends Event {
         ByteArrayOutputStream baOutputStream = new ByteArrayOutputStream();
         DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
 
+        try {
+            dout.writeByte(getType());
+            dout.writeInt(tableSize);
+
+            for (int i = 0; i < tableSize; i++) {
+                dout.writeInt(nodesIds[i]);
+                dout.writeByte(ipAddressLengths[i]);
+                dout.write(ipAddresses[i]);
+                dout.writeInt(ports[i]);
+            }
+
+            dout.writeByte(noOfNodeIds);
+            for (int i = 0; i < noOfNodeIds; i++) {
+                dout.writeInt(allNodeIds[i]);
+            }
+
+            dout.flush();
+
+            marshalledBytes = baOutputStream.toByteArray();
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        } finally {
+            try {
+                baOutputStream.close();
+                dout.close();
+            } catch (IOException e) {
+                logger.error(e.getStackTrace());
+            }
+        }
+
         return marshalledBytes;
     }
 
@@ -91,5 +121,53 @@ public class RegistrySendsNodeManifest extends Event {
     @Override
     public int getType() {
         return Protocol.REGISTRY_SENDS_NODE_MANIFEST;
+    }
+
+    public int[] getNodesIds() {
+        return nodesIds;
+    }
+
+    public void setNodesIds(int[] nodesIds) {
+        this.nodesIds = nodesIds;
+    }
+
+    public byte[] getIpAddressLengths() {
+        return ipAddressLengths;
+    }
+
+    public void setIpAddressLengths(byte[] ipAddressLengths) {
+        this.ipAddressLengths = ipAddressLengths;
+    }
+
+    public byte[][] getIpAddresses() {
+        return ipAddresses;
+    }
+
+    public void setIpAddresses(byte[][] ipAddresses) {
+        this.ipAddresses = ipAddresses;
+    }
+
+    public int[] getPorts() {
+        return ports;
+    }
+
+    public void setPorts(int[] ports) {
+        this.ports = ports;
+    }
+
+    public int getNoOfNodeIds() {
+        return noOfNodeIds;
+    }
+
+    public void setNoOfNodeIds(int noOfNodeIds) {
+        this.noOfNodeIds = noOfNodeIds;
+    }
+
+    public int[] getAllNodeIds() {
+        return allNodeIds;
+    }
+
+    public void setAllNodeIds(int[] allNodeIds) {
+        this.allNodeIds = allNodeIds;
     }
 }

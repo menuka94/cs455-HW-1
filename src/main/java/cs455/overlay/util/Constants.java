@@ -5,7 +5,6 @@ public class Constants {
     public static final String LOG_PREFIX_WARN = "[WARN] ";
     public static final String LOG_PREFIX_ERROR = "[ERROR] ";
 
-
     // Registry Commands
     public static final String LIST_MESSAGING_NODES = "list-messaging-nodes";
     public static final String LIST_ROUTING_TABLES = "list-routing-tables";
