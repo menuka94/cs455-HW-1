@@ -2,10 +2,13 @@ package cs455.overlay.node;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.Set;
+import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
@@ -18,6 +21,7 @@ import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
+import cs455.overlay.wireformats.RegistrySendsNodeManifest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -26,7 +30,7 @@ public class Registry implements Node {
     private int port;
     private InteractiveCommandParser commandParser;
     private TCPServerThread tcpServerThread;
-    private HashMap<Integer, Socket> registeredNodes;
+    private HashMap<Integer, Socket> registeredNodeSocketMap;
     private Random random;
     private HashMap<Integer, RoutingTable> routingTables;
 
@@ -36,7 +40,7 @@ public class Registry implements Node {
         tcpServerThread.start();
         commandParser = new InteractiveCommandParser(this);
         commandParser.start();
-        registeredNodes = new HashMap<>();
+        registeredNodeSocketMap = new HashMap<>();
         random = new Random();
     }
 
@@ -121,14 +125,14 @@ public class Registry implements Node {
             responseEvent.setSuccessStatus(-1);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             responseEvent.setInfoString(infoString);
-        } else if (!registeredNodes.containsKey(nodeId)) {
+        } else if (!registeredNodeSocketMap.containsKey(nodeId)) {
             logger.warn("Node ID (" + nodeId + ") not registered with the Registry");
         } else {
             // Everything is OK. Proceed to deregister the node
-            registeredNodes.remove(socket);
+            registeredNodeSocketMap.remove(socket);
             String infoString = "Deregistration request successful. " +
                     "The number of messaging nodes currently constituting the overlay " +
-                    "is (" + (registeredNodes.size() - 1) + ")";
+                    "is (" + (registeredNodeSocketMap.size() - 1) + ")";
             responseEvent.setSuccessStatus(nodeId);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             responseEvent.setInfoString(infoString);
@@ -166,7 +170,7 @@ public class Registry implements Node {
             responseEvent.setInfoString(infoString);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
         } else if (TCPConnectionsCache.containsConnection(socket)) {
-            if (registeredNodes.containsValue(socket)) {
+            if (registeredNodeSocketMap.containsValue(socket)) {
                 // checking if the node has already been registered
                 logger.warn("Node already registered");
                 responseEvent.setSuccessStatus(-1);
@@ -180,7 +184,7 @@ public class Registry implements Node {
                 responseEvent.setSuccessStatus(randomNodeId);
                 String infoString = "Registration request successful. " +
                         "The number of messaging nodes currently constituting the overlay " +
-                        "is (" + (registeredNodes.size() + 1) + ")";
+                        "is (" + (registeredNodeSocketMap.size() + 1) + ")";
                 responseEvent.setInfoString(infoString);
                 responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             }
@@ -193,7 +197,7 @@ public class Registry implements Node {
         TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
         try {
             tcpConnection.sendData(responseEvent.getBytes());
-            registeredNodes.put(randomNodeId, socket);
+            registeredNodeSocketMap.put(randomNodeId, socket);
         } catch (IOException e) {
             logger.error("Error sending ");
             logger.error(e.getStackTrace());
@@ -202,10 +206,42 @@ public class Registry implements Node {
 
     public void setupOverlay(final int tableSize) {
         routingTables = new HashMap<>();
-        Collection<Integer> nodeIds = registeredNodes.keySet();
-        logger.info("Available Node IDs");
-        for (Integer nodeId : nodeIds) {
+        Set<Integer> nodeIdsSet = registeredNodeSocketMap.keySet();
+        ArrayList<Integer> sortedNodeIds = new ArrayList<>(nodeIdsSet);
+        Collections.sort(sortedNodeIds);  // sort the NodeIDs in ascending order
+        int noOfRegisteredNodes = registeredNodeSocketMap.size();
+        for (int i = 0; i < sortedNodeIds.size(); i++) {
+            // ID of the node to which the current routing table should be sent
+            Integer nodeIdToSendRoutingTable = sortedNodeIds.get(i);
+            // create a routing table to send to the current node
             RoutingTable routingTable = new RoutingTable(tableSize);
+            for (int j = 0; j < tableSize; j++) {
+                // add routing entries to each routing table
+                int distance = (int) Math.pow(2, j);    // distance is a power of 2
+                int nodePosition = (distance + i) % noOfRegisteredNodes;
+                int nodeId = sortedNodeIds.get(nodePosition);
+                Socket socket = registeredNodeSocketMap.get(nodeId);
+
+                RoutingEntry routingEntry = new RoutingEntry(distance, nodeId,
+                        socket.getInetAddress().getHostAddress(), socket.getPort());
+                routingTable.addRoutingEntry(routingEntry);
+            }
+            sendRoutingTable(routingTable, registeredNodeSocketMap.get(nodeIdToSendRoutingTable),
+                    nodeIdToSendRoutingTable);
         }
+    }
+
+    private void sendRoutingTable(RoutingTable routingTable, Socket socket, int nodeId) {
+        RegistrySendsNodeManifest event = new RegistrySendsNodeManifest();
+        System.out.println("----------------------------------\n");
+        System.out.println("Routing Table for Node " + nodeId);
+        routingTable.print();
+
+        // TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+        // try {
+        //     tcpConnection.sendData(event.getBytes());
+        // } catch (IOException e) {
+        //     e.printStackTrace();
+        // }
     }
 }

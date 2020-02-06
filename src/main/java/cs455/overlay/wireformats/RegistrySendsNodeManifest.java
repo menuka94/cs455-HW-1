@@ -19,6 +19,9 @@ public class RegistrySendsNodeManifest extends Event {
     private int noOfNodeIds;
     private int[] allNodeIds;
 
+    public RegistrySendsNodeManifest() {
+    }
+
     /**
      * byte: Message type; REGISTRY_SENDS_NODE_MANIFEST
      * byte: routing table size N R
