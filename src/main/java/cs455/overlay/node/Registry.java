@@ -213,6 +213,12 @@ public class Registry implements Node {
         for (int i = 0; i < sortedNodeIds.size(); i++) {
             // ID of the node to which the current routing table should be sent
             Integer nodeIdToSendRoutingTable = sortedNodeIds.get(i);
+
+            int[] nodeIdsToSend = new int[tableSize];
+            byte[] ipAddressLengthsToSend = new byte[tableSize];
+            byte[][] ipAddressesToSend = new byte[tableSize][];
+            int[] portsToSend = new int[tableSize];
+
             // create a routing table to send to the current node
             RoutingTable routingTable = new RoutingTable(tableSize);
             for (int j = 0; j < tableSize; j++) {
@@ -222,26 +228,45 @@ public class Registry implements Node {
                 int nodeId = sortedNodeIds.get(nodePosition);
                 Socket socket = registeredNodeSocketMap.get(nodeId);
 
+                nodeIdsToSend[j] = nodeId;
+                ipAddressesToSend[j] = socket.getInetAddress().getHostAddress().getBytes();
+                ipAddressLengthsToSend[j] = (byte) ipAddressesToSend[j].length;
+                portsToSend[j] = socket.getPort();
+
                 RoutingEntry routingEntry = new RoutingEntry(distance, nodeId,
                         socket.getInetAddress().getHostAddress(), socket.getPort());
                 routingTable.addRoutingEntry(routingEntry);
             }
-            sendRoutingTable(routingTable, registeredNodeSocketMap.get(nodeIdToSendRoutingTable),
-                    nodeIdToSendRoutingTable);
+
+            RegistrySendsNodeManifest event = new RegistrySendsNodeManifest();
+            event.setNodesIds(nodeIdsToSend);
+            event.setIpAddresses(ipAddressesToSend);
+            event.setIpAddressLengths(ipAddressLengthsToSend);
+            event.setTableSize(tableSize);
+            event.setPorts(portsToSend);
+
+            event.setNoOfAllNodeIds(sortedNodeIds.size());
+            event.setAllNodeIds(arrayListToArray(sortedNodeIds));
+
+            sendRoutingTable(event, registeredNodeSocketMap.get(nodeIdToSendRoutingTable));
         }
     }
 
-    private void sendRoutingTable(RoutingTable routingTable, Socket socket, int nodeId) {
-        RegistrySendsNodeManifest event = new RegistrySendsNodeManifest();
-        System.out.println("----------------------------------\n");
-        System.out.println("Routing Table for Node " + nodeId);
-        routingTable.print();
+    private int[] arrayListToArray(ArrayList<Integer> arrayList) {
+        int[] array = new int[arrayList.size()];
+        for (int i = 0; i < arrayList.size(); i++) {
+            array[i] = arrayList.get(i);
+        }
 
-        // TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
-        // try {
-        //     tcpConnection.sendData(event.getBytes());
-        // } catch (IOException e) {
-        //     e.printStackTrace();
-        // }
+        return array;
+    }
+
+    private void sendRoutingTable(RegistrySendsNodeManifest event, Socket socket) {
+        TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+        try {
+            tcpConnection.sendData(event.getBytes());
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        }
     }
 }

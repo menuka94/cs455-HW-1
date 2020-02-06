@@ -16,7 +16,7 @@ public class RegistrySendsNodeManifest extends Event {
     private byte[][] ipAddresses;
     private int[] ports;
 
-    private int noOfNodeIds;
+    private int noOfAllNodeIds;
     private int[] allNodeIds;
 
     public RegistrySendsNodeManifest() {
@@ -66,9 +66,9 @@ public class RegistrySendsNodeManifest extends Event {
             ports[i] = din.readInt();
         }
 
-        noOfNodeIds = din.readByte();
-        allNodeIds = new int[noOfNodeIds];
-        for (int i = 0; i < noOfNodeIds; i++) {
+        noOfAllNodeIds = din.readByte();
+        allNodeIds = new int[noOfAllNodeIds];
+        for (int i = 0; i < noOfAllNodeIds; i++) {
             allNodeIds[i] = din.readInt();
         }
     }
@@ -90,8 +90,8 @@ public class RegistrySendsNodeManifest extends Event {
                 dout.writeInt(ports[i]);
             }
 
-            dout.writeByte(noOfNodeIds);
-            for (int i = 0; i < noOfNodeIds; i++) {
+            dout.writeByte(noOfAllNodeIds);
+            for (int i = 0; i < noOfAllNodeIds; i++) {
                 dout.writeInt(allNodeIds[i]);
             }
 
@@ -158,12 +158,12 @@ public class RegistrySendsNodeManifest extends Event {
         this.ports = ports;
     }
 
-    public int getNoOfNodeIds() {
-        return noOfNodeIds;
+    public int getNoOfAllNodeIds() {
+        return noOfAllNodeIds;
     }
 
-    public void setNoOfNodeIds(int noOfNodeIds) {
-        this.noOfNodeIds = noOfNodeIds;
+    public void setNoOfAllNodeIds(int noOfAllNodeIds) {
+        this.noOfAllNodeIds = noOfAllNodeIds;
     }
 
     public int[] getAllNodeIds() {
