@@ -143,6 +143,11 @@ public class MessagingNode implements Node {
         System.out.println("--------------------------------------");
         routingTable.printRoutingTable();
         System.out.println("--------------------------------------");
+
+        // prepare response event
+        NodeReportsOverlaySetupStatus responseEvent = new NodeReportsOverlaySetupStatus();
+
+
     }
 
     private void handleRegistryReportsRegistrationStatus(Event event) {
@@ -173,7 +178,7 @@ public class MessagingNode implements Node {
             commandParser.stopAcceptingCommands();
             Socket socket = deregistrationStatus.getSocket();
             // TODO: properly stop commandParser thread
-            commandParser.stop();
+            commandParser.interrupt();
         } else {
             logger.warn("Deregistration failed. Reason unknown.");
         }
