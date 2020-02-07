@@ -2,7 +2,10 @@ package cs455.overlay.node;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.ArrayList;
 
+import cs455.overlay.routing.RoutingEntry;
+import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
@@ -78,7 +81,7 @@ public class MessagingNode implements Node {
                 handleRegistryReportsDeregistrationStatus(event);
                 break;
             case Protocol.REGISTRY_SENDS_NODE_MANIFEST:
-                handleRegistrySendsNodeManifest(event);
+                respondToRegistrySendsNodeManifest(event);
                 break;
             case Protocol.REGISTRY_REQUESTS_TASK_INITIATE:
                 initiateTask(event);
@@ -99,8 +102,47 @@ public class MessagingNode implements Node {
 
     }
 
-    private void handleRegistrySendsNodeManifest(Event event) {
-
+    /**
+     * byte: Message type; REGISTRY_SENDS_NODE_MANIFEST
+     * byte: routing table size N R
+     * =============================================================================
+     * int: Node ID of node 1 hop away
+     * byte: length of following "IP address" field
+     * byte[^^]: IP address of node 1 hop away; from InetAddress.getAddress()
+     * int: Port number of node 1 hop away
+     * -----------------------------------------------------------------------------
+     * int: Node ID of node 2 hops away
+     * byte: length of following "IP address" field
+     * byte[^^]: IP address of node 2 hops away; from InetAddress.getAddress()
+     * int: Port number of node 2 hops away
+     * -----------------------------------------------------------------------------
+     * int: Node ID of node 4 hops away
+     * byte: length of following "IP address" field
+     * byte[^^]: IP address of node 4 hops away; from InetAddress.getAddress()
+     * int: Port number of node 4 hops away
+     * =============================================================================
+     * byte: Number of node IDs in the system
+     * int[^^]: List of all node IDs in the system [Note no IPs are included]
+     */
+    private void respondToRegistrySendsNodeManifest(Event event) {
+        RegistrySendsNodeManifest nodeManifestEvent = (RegistrySendsNodeManifest) event;
+        int tableSize = nodeManifestEvent.getTableSize();
+        logger.info("tableSize: " + tableSize);
+        RoutingTable routingTable = new RoutingTable(tableSize);
+        ArrayList<RoutingEntry> routingEntries = routingTable.getRoutingEntries();
+        logger.info("No. of Routing Entries: " + routingEntries.size());
+        for (int i = 0; i < tableSize; i++) {
+            routingTable.addRoutingEntry(new RoutingEntry(
+                    (int) Math.pow(2, i),
+                    getNodeId(),
+                    new String(nodeManifestEvent.getIpAddresses()[i]),
+                    nodeManifestEvent.getPorts()[i]
+            ));
+        }
+        System.out.println("\n\nRouting Table");
+        System.out.println("--------------------------------------");
+        routingTable.printRoutingTable();
+        System.out.println("--------------------------------------");
     }
 
     private void handleRegistryReportsRegistrationStatus(Event event) {

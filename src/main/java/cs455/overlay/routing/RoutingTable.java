@@ -1,6 +1,7 @@
 package cs455.overlay.routing;
 
 import java.util.ArrayList;
+
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,18 +31,17 @@ public class RoutingTable {
         return tableSize;
     }
 
-    public void print() {
-        System.out.format("%-15s%-15s%-15s%-15s\n", new String[]{
-                "NodeID", "Distance", "IP Address", "Port"});
+    public void printRoutingTable() {
+        System.out.printf("%-12s %-16s %-15s %s\n", "DISTANCE", "NODE ID", "IP", "PORT");
+
+        ArrayList<RoutingEntry> routingEntries = getRoutingEntries();
         for (RoutingEntry routingEntry : routingEntries) {
-            String[] row = new String[]{
-                    String.valueOf(routingEntry.getNodeId()),
-                    String.valueOf(routingEntry.getDistance()),
+            System.out.printf("%-12s %-16s %-15s %s\n",
+                    routingEntry.getDistance(),
+                    routingEntry.getNodeId(),
                     routingEntry.getIpAddress(),
-                    String.valueOf(routingEntry.getPort())
-            };
-            System.out.format("%-15s%-15s%-15s%-15s\n", row);
+                    routingEntry.getPort()
+            );
         }
     }
-
 }

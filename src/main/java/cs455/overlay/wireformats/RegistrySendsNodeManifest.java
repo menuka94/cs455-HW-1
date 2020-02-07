@@ -52,7 +52,7 @@ public class RegistrySendsNodeManifest extends Event {
 
         Validator.validateEventType(messageType, Protocol.REGISTRY_SENDS_NODE_MANIFEST, logger);
 
-        tableSize = din.readByte();
+        tableSize = din.readInt();
         nodesIds = new int[tableSize];
         ports = new int[tableSize];
         ipAddressLengths = new byte[tableSize];

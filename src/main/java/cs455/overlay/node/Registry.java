@@ -291,21 +291,12 @@ public class Registry implements Node {
                 System.out.println("IP Address: " + socket.getInetAddress().getHostAddress());
                 System.out.println("Port: " + socket.getPort());
 
-                System.out.printf("%-12s %-16s %-15s %s\n", "DISTANCE", "NODE ID", "IP", "PORT");
-
                 RoutingTable routingTable = routingTables.get(nodeId);
-                ArrayList<RoutingEntry> routingEntries = routingTable.getRoutingEntries();
-                for (RoutingEntry routingEntry : routingEntries) {
-                    System.out.printf("%-12s %-16s %-15s %s\n",
-                            routingEntry.getDistance(),
-                            routingEntry.getNodeId(),
-                            routingEntry.getIpAddress(),
-                            routingEntry.getPort()
-                    );
-                }
+                routingTable.printRoutingTable();
             }
         } else {
             logger.warn("Overlay setup has not started. No routing tables available");
         }
     }
+
 }
