@@ -81,7 +81,16 @@ public class Registry implements Node {
     }
 
     public void listMessagingNodes() {
-        TCPConnectionsCache.printConnections();
+        ArrayList<Integer> nodeIds = new ArrayList<>(registeredNodeSocketMap.keySet());
+        Collections.sort(nodeIds);
+        for (int i = 0; i < nodeIds.size(); i++) {
+            Integer nodeId = nodeIds.get(i);
+            Socket socket = registeredNodeSocketMap.get(nodeId);
+            System.out.println("Node ID: " + nodeId +
+                    ", IP Address: " + socket.getInetAddress().getHostAddress() +
+                    ", Port: " + socket.getPort()
+            );
+        }
     }
 
     private void respondToOverlayNodeReportsTaskFinished() {
