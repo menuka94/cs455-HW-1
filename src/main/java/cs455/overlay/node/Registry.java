@@ -232,7 +232,7 @@ public class Registry implements Node {
             // create a routing table to send to the current node
             RoutingTable routingTable = new RoutingTable(tableSize);
             for (int j = 0; j < tableSize; j++) {
-                // add routing entries to each routing table
+                // add routing entries to the current routing table
                 int distance = (int) Math.pow(2, j);    // distance is a power of 2
                 int nodePosition = (distance + i) % noOfRegisteredNodes;
                 int nodeId = sortedNodeIds.get(nodePosition);

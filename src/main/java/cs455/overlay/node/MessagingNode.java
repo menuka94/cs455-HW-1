@@ -130,16 +130,16 @@ public class MessagingNode implements Node {
         logger.info("tableSize: " + tableSize);
         RoutingTable routingTable = new RoutingTable(tableSize);
         ArrayList<RoutingEntry> routingEntries = routingTable.getRoutingEntries();
-        logger.info("No. of Routing Entries: " + routingEntries.size());
         for (int i = 0; i < tableSize; i++) {
             routingTable.addRoutingEntry(new RoutingEntry(
                     (int) Math.pow(2, i),
-                    getNodeId(),
+                    nodeManifestEvent.getNodesIds()[i],
                     new String(nodeManifestEvent.getIpAddresses()[i]),
                     nodeManifestEvent.getPorts()[i]
             ));
         }
-        System.out.println("\n\nRouting Table");
+        logger.info("No. of Routing Entries: " + routingEntries.size());
+        System.out.println("\n\nRouting Table of node " + nodeId);
         System.out.println("--------------------------------------");
         routingTable.printRoutingTable();
         System.out.println("--------------------------------------");
