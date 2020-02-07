@@ -28,6 +28,7 @@ import org.apache.logging.log4j.Logger;
 public class Registry implements Node {
     private static final Logger logger = LogManager.getLogger(Registry.class);
     private int port;
+    private static boolean overlaySetup = false;
     private InteractiveCommandParser commandParser;
     private TCPServerThread tcpServerThread;
     private HashMap<Integer, Socket> registeredNodeSocketMap;
@@ -179,7 +180,7 @@ public class Registry implements Node {
                 responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             } else {
                 // proceed to register the node
-                randomNodeId = random.nextInt(Constants.MAX_NODES);
+                randomNodeId = random.nextInt(Constants.MAX_NODES) + 1; // add one to avoid zero
                 logger.info("Generated ID for new node: " + randomNodeId);
                 responseEvent.setSuccessStatus(randomNodeId);
                 String infoString = "Registration request successful. " +
@@ -237,6 +238,7 @@ public class Registry implements Node {
                         socket.getInetAddress().getHostAddress(), socket.getPort());
                 routingTable.addRoutingEntry(routingEntry);
             }
+            routingTables.put(nodeIdToSendRoutingTable, routingTable);
 
             RegistrySendsNodeManifest event = new RegistrySendsNodeManifest();
             event.setNodesIds(nodeIdsToSend);
@@ -249,6 +251,7 @@ public class Registry implements Node {
             event.setAllNodeIds(arrayListToArray(sortedNodeIds));
 
             sendRoutingTable(event, registeredNodeSocketMap.get(nodeIdToSendRoutingTable));
+            overlaySetup = true;
         }
     }
 
@@ -267,6 +270,33 @@ public class Registry implements Node {
             tcpConnection.sendData(event.getBytes());
         } catch (IOException e) {
             logger.error(e.getStackTrace());
+        }
+    }
+
+    public void listRoutingTables() {
+        if (overlaySetup) {
+            Set<Integer> nodeIds = routingTables.keySet();
+            for (Integer nodeId : nodeIds) {
+                Socket socket = registeredNodeSocketMap.get(nodeId);
+                System.out.println("\n\n\nNode: " + nodeId);
+                System.out.println("IP Address: " + socket.getInetAddress().getHostAddress());
+                System.out.println("Port: " + socket.getPort());
+
+                System.out.printf("%-12s %-16s %-15s %s\n", "DISTANCE", "NODE ID", "IP", "PORT");
+
+                RoutingTable routingTable = routingTables.get(nodeId);
+                ArrayList<RoutingEntry> routingEntries = routingTable.getRoutingEntries();
+                for (RoutingEntry routingEntry : routingEntries) {
+                    System.out.printf("%-12s %-16s %-15s %s\n",
+                            routingEntry.getDistance(),
+                            routingEntry.getNodeId(),
+                            routingEntry.getIpAddress(),
+                            routingEntry.getPort()
+                    );
+                }
+            }
+        } else {
+            logger.warn("Overlay setup has not started. No routing tables available");
         }
     }
 }

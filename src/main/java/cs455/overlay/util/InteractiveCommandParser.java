@@ -51,7 +51,7 @@ public class InteractiveCommandParser extends Thread {
             if (nextCommand.contains(Constants.LIST_MESSAGING_NODES)) {
                 registry.listMessagingNodes();
             } else if (nextCommand.contains(Constants.LIST_ROUTING_TABLES)) {
-                System.out.println("TODO: List routing tables");
+                registry.listRoutingTables();
             } else if (nextCommand.contains(Constants.START)) {
                 int numberOfMessages = Integer.parseInt(nextCommand.split(" ")[1]);
                 System.out.println("TODO: Start " + numberOfMessages);
