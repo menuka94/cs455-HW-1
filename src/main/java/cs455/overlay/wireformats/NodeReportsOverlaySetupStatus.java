@@ -5,10 +5,12 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;
 
 public class NodeReportsOverlaySetupStatus extends Event {
     private static final Logger logger = LogManager.getLogger(NodeReportsOverlaySetupStatus.class);
@@ -16,6 +18,9 @@ public class NodeReportsOverlaySetupStatus extends Event {
     private int successStatus;
     private byte lengthOfInfoString;
     private byte[] infoString;
+
+    public NodeReportsOverlaySetupStatus() {
+    }
 
     /**
      * byte: Message type (NODE_REPORTS_OVERLAY_SETUP_STATUS)
@@ -42,7 +47,32 @@ public class NodeReportsOverlaySetupStatus extends Event {
 
     @Override
     public byte[] getBytes() {
-        return new byte[0];
+        byte[] marshalledBytes = null;
+        ByteArrayOutputStream baOutputStream = new ByteArrayOutputStream();
+        DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
+
+        try {
+            dout.writeByte(getType());
+            dout.writeInt(successStatus);
+            dout.writeByte(lengthOfInfoString);
+            dout.write(infoString);
+
+            dout.flush();
+
+            marshalledBytes = baOutputStream.toByteArray();
+
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        } finally {
+            try {
+                baOutputStream.close();
+                dout.close();
+            } catch (IOException e) {
+                logger.error(e.getStackTrace());
+            }
+        }
+
+        return marshalledBytes;
     }
 
     @Override
