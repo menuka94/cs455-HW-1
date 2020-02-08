@@ -34,6 +34,7 @@ public class Registry implements Node {
     private HashMap<Integer, Socket> registeredNodeSocketMap;
     private Random random;
     private HashMap<Integer, RoutingTable> routingTables;
+    private HashMap<Integer, Integer> registeredNodeListeningPortMap;
 
     private Registry(int port) throws IOException {
         this.port = port;
@@ -42,6 +43,7 @@ public class Registry implements Node {
         commandParser = new InteractiveCommandParser(this);
         commandParser.start();
         registeredNodeSocketMap = new HashMap<>();
+        registeredNodeListeningPortMap = new HashMap<>();
         random = new Random();
     }
 
@@ -208,6 +210,8 @@ public class Registry implements Node {
         try {
             tcpConnection.sendData(responseEvent.getBytes());
             registeredNodeSocketMap.put(randomNodeId, socket);
+            registeredNodeListeningPortMap.put(randomNodeId,
+                    overlayNodeSendsRegistration.getPort());
         } catch (IOException e) {
             logger.error("Error sending ");
             logger.error(e.getStackTrace());
@@ -241,7 +245,7 @@ public class Registry implements Node {
                 nodeIdsToSend[j] = nodeId;
                 ipAddressesToSend[j] = socket.getInetAddress().getHostAddress().getBytes();
                 ipAddressLengthsToSend[j] = (byte) ipAddressesToSend[j].length;
-                portsToSend[j] = socket.getPort();
+                portsToSend[j] =  registeredNodeListeningPortMap.get(nodeId);
 
                 RoutingEntry routingEntry = new RoutingEntry(distance, nodeId,
                         socket.getInetAddress().getHostAddress(), socket.getPort());

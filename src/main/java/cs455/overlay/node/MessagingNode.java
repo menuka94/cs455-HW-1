@@ -1,6 +1,7 @@
 package cs455.overlay.node;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
 
@@ -10,7 +11,14 @@ import cs455.overlay.transport.TCPConnection;
 import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.InteractiveCommandParser;
-import cs455.overlay.wireformats.*;
+import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
+import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
+import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
+import cs455.overlay.wireformats.Protocol;
+import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
+import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
+import cs455.overlay.wireformats.RegistrySendsNodeManifest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -168,9 +176,10 @@ public class MessagingNode implements Node {
         for (RoutingEntry routingEntry : routingEntries) {
             System.out.println("\n\nConnecting to node: " + routingEntry.getNodeId());
             try {
-                logger.info("IPAddress: " + routingEntry.getIpAddress());
+                logger.info("IPAddress: " + InetAddress.getByName(routingEntry.getIpAddress()));
                 logger.info("Port: " + routingEntry.getPort());
-                Socket socket = new Socket(routingEntry.getIpAddress(), routingEntry.getPort());
+                InetAddress byAddress = InetAddress.getByName(routingEntry.getIpAddress());
+                Socket socket = new Socket(byAddress.getHostAddress(), routingEntry.getPort());
                 TCPConnection tcpConnection = new TCPConnection(socket, this);
                 TCPConnectionsCache.addConnection(socket, tcpConnection);
             } catch (IOException e) {

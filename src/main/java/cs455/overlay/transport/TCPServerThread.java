@@ -11,10 +11,12 @@ public class TCPServerThread extends Thread {
     private static final Logger logger = LogManager.getLogger(TCPServerThread.class);
     private boolean listeningForClients;
     private ServerSocket serverSocket;
+    private int listenPort;
     private Node node;
 
     public TCPServerThread(int listenPort, Node node) throws IOException {
         serverSocket = new ServerSocket(listenPort);
+        this.listenPort = serverSocket.getLocalPort();
         this.node = node;
     }
 
@@ -24,12 +26,12 @@ public class TCPServerThread extends Thread {
 
         while (listeningForClients) {
             try {
-                logger.info("Server is accepting connections ...");
+                logger.info("Server is accepting connections on port " + listenPort);
                 Socket socket = serverSocket.accept();
                 TCPConnection tcpConnection = new TCPConnection(socket, node);
                 TCPConnectionsCache.addConnection(socket, tcpConnection);
                 logger.info("New Connection Established with " +
-                        tcpConnection.getDestinationAddress() + " on port " +
+                        tcpConnection.getSocket().getInetAddress().getHostAddress() + " on port " +
                         tcpConnection.getDestinationPort());
             } catch (IOException e) {
                 logger.error("Error while listening for clients");

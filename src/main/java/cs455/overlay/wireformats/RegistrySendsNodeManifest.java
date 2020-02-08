@@ -4,7 +4,13 @@ import cs455.overlay.util.Validator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.*;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 
 public class RegistrySendsNodeManifest extends Event {
     private static final Logger logger = LogManager.getLogger(RegistrySendsNodeManifest.class);
