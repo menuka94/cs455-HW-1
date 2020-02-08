@@ -17,7 +17,7 @@ public class NodeReportsOverlaySetupStatus extends Event {
     private byte messageType;
     private int successStatus;
     private byte lengthOfInfoString;
-    private byte[] infoString;
+    private String infoString;
 
     public NodeReportsOverlaySetupStatus() {
     }
@@ -37,8 +37,9 @@ public class NodeReportsOverlaySetupStatus extends Event {
 
         successStatus = din.readInt();
         lengthOfInfoString = din.readByte();
-        infoString = new byte[lengthOfInfoString];
-        din.readFully(infoString, 0, lengthOfInfoString);
+        byte[] byteInfoString = new byte[lengthOfInfoString];
+        din.readFully(byteInfoString, 0, lengthOfInfoString);
+        infoString = new String(byteInfoString);
 
         baInputStream.close();
         din.close();
@@ -55,7 +56,7 @@ public class NodeReportsOverlaySetupStatus extends Event {
             dout.writeByte(getType());
             dout.writeInt(successStatus);
             dout.writeByte(lengthOfInfoString);
-            dout.write(infoString);
+            dout.write(infoString.getBytes());
 
             dout.flush();
 
@@ -78,5 +79,37 @@ public class NodeReportsOverlaySetupStatus extends Event {
     @Override
     public int getType() {
         return Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS;
+    }
+
+    public byte getMessageType() {
+        return messageType;
+    }
+
+    public void setMessageType(byte messageType) {
+        this.messageType = messageType;
+    }
+
+    public int getSuccessStatus() {
+        return successStatus;
+    }
+
+    public void setSuccessStatus(int successStatus) {
+        this.successStatus = successStatus;
+    }
+
+    public byte getLengthOfInfoString() {
+        return lengthOfInfoString;
+    }
+
+    public void setLengthOfInfoString(byte lengthOfInfoString) {
+        this.lengthOfInfoString = lengthOfInfoString;
+    }
+
+    public String getInfoString() {
+        return infoString;
+    }
+
+    public void setInfoString(String infoString) {
+        this.infoString = infoString;
     }
 }

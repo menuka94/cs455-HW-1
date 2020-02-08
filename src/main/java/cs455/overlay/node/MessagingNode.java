@@ -137,6 +137,7 @@ public class MessagingNode implements Node {
                     new String(nodeManifestEvent.getIpAddresses()[i]),
                     nodeManifestEvent.getPorts()[i]
             ));
+            logger.info("IP Address received: " + new String(nodeManifestEvent.getIpAddresses()[i]));
         }
         logger.info("No. of Routing Entries: " + routingEntries.size());
         System.out.println("\n\nRouting Table of node " + nodeId);
@@ -144,9 +145,38 @@ public class MessagingNode implements Node {
         routingTable.printRoutingTable();
         System.out.println("--------------------------------------");
 
+        connectToNodesInRoutingTable(routingTable);
+
         // prepare response event
         NodeReportsOverlaySetupStatus responseEvent = new NodeReportsOverlaySetupStatus();
+        responseEvent.setSuccessStatus(getNodeId());
+        String infoString = "Node " + getNodeId() + " successfully initiated connections with all" +
+                " nodes in the routing table.";
+        responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+        responseEvent.setInfoString(infoString);
 
+        try {
+            registryConnection.sendData(responseEvent.getBytes());
+        } catch (IOException e) {
+            logger.error("Error sending data to Registry");
+            logger.error(e.getStackTrace());
+        }
+    }
+
+    private void connectToNodesInRoutingTable(RoutingTable routingTable) {
+        ArrayList<RoutingEntry> routingEntries = routingTable.getRoutingEntries();
+        for (RoutingEntry routingEntry : routingEntries) {
+            System.out.println("\n\nConnecting to node: " + routingEntry.getNodeId());
+            try {
+                logger.info("IPAddress: " + routingEntry.getIpAddress());
+                logger.info("Port: " + routingEntry.getPort());
+                Socket socket = new Socket(routingEntry.getIpAddress(), routingEntry.getPort());
+                TCPConnection tcpConnection = new TCPConnection(socket, this);
+                TCPConnectionsCache.addConnection(socket, tcpConnection);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
     }
 
