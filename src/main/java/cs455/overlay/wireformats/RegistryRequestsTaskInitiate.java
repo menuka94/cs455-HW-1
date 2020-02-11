@@ -4,6 +4,7 @@ public class RegistryRequestsTaskInitiate extends Event {
 
     private byte messageType;
     private int noOfPackets;
+
     /**
      * byte: Message type; REGISTRY_REQUESTS_TASK_INITIATE
      * int: Number of data packets to send

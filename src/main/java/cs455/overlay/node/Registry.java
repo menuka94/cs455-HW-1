@@ -16,6 +16,7 @@ import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.Constants;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Event;
+import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
 import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
@@ -68,7 +69,7 @@ public class Registry implements Node {
                 respondToOverlayNodeSendsData();
                 break;
             case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
-                respondToNodeReportsOverlaySetupStatus();
+                respondToNodeReportsOverlaySetupStatus(event);
                 break;
             case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
                 respondToOverlayNodeReportsTrafficSummary();
@@ -103,8 +104,18 @@ public class Registry implements Node {
 
     }
 
-    private void respondToNodeReportsOverlaySetupStatus() {
+    private void respondToNodeReportsOverlaySetupStatus(Event event) {
+        NodeReportsOverlaySetupStatus overlaySetupStatusEvent = (NodeReportsOverlaySetupStatus) event;
 
+        int successStatus = overlaySetupStatusEvent.getSuccessStatus();
+        if (successStatus == -1) {
+            logger.warn(overlaySetupStatusEvent.getInfoString());
+        } else if (registeredNodeSocketMap.containsKey(successStatus)) {
+            logger.info(overlaySetupStatusEvent.getInfoString());
+        } else {
+            logger.warn("Node " + successStatus + " not found in registered messaging " +
+                    "nodes");
+        }
     }
 
     private void respondToOverlayNodeSendsData() {
