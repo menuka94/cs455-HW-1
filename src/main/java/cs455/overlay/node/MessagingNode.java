@@ -18,6 +18,7 @@ import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
+import cs455.overlay.wireformats.RegistryRequestsTaskInitiate;
 import cs455.overlay.wireformats.RegistrySendsNodeManifest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -107,6 +108,8 @@ public class MessagingNode implements Node {
     }
 
     private void initiateTask(Event event) {
+        RegistryRequestsTaskInitiate taskInitiateEvent = (RegistryRequestsTaskInitiate) event;
+        int noOfPacketsToSend = taskInitiateEvent.getNoOfPacketsToSend();
 
     }
 

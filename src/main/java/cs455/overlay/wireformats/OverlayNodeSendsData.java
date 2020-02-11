@@ -1,7 +1,24 @@
 package cs455.overlay.wireformats;
 
-public class OverlayNodeSendsData extends Event {
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+public class OverlayNodeSendsData extends Event {
+    private static final Logger logger = LogManager.getLogger(OverlayNodeSendsData.class);
+
+    private byte messageType;
+    private int destinationId;
+    private int sourceId;
+    private int payload;
+    private int disseminationTraceLength;  // number of hops
+    private int[] disseminationTrace;
     /**
      * byte: Message type; OVERLAY_NODE_SENDS_DATA
      * int: Destination ID
@@ -11,13 +28,57 @@ public class OverlayNodeSendsData extends Event {
      * int[^^]: Dissemination trace comprising nodeIDs that the packet traversed
      * through
      */
-    public OverlayNodeSendsData(byte[] marshalledBytes) {
+    public OverlayNodeSendsData(byte[] marshalledBytes) throws IOException {
+        ByteArrayInputStream baInputStream = new ByteArrayInputStream(marshalledBytes);
+        DataInputStream din = new DataInputStream(new BufferedInputStream(baInputStream));
 
+        messageType = din.readByte();
+
+        destinationId = din.readInt();
+        sourceId = din.readInt();
+        payload = din.readInt();
+        disseminationTraceLength = din.readInt();
+        disseminationTrace = new int[disseminationTraceLength + 1];
+        for(int i = 0; i < disseminationTraceLength; i++) {
+            disseminationTrace[i] = din.readInt();
+        }
+
+        baInputStream.close();
+        din.close();
     }
 
     @Override
     public byte[] getBytes() {
-        return new byte[0];
+        byte[] marshalledBytes = null;
+        ByteArrayOutputStream baOutputStream = new ByteArrayOutputStream();
+        DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
+
+        try {
+            dout.writeByte(messageType);
+            dout.writeInt(destinationId);
+            dout.writeInt(sourceId);
+            dout.writeInt(payload);
+            dout.writeInt(disseminationTraceLength);
+            for(int i = 0; i < disseminationTraceLength; i++) {
+                dout.writeInt(disseminationTrace[i]);
+            }
+
+            dout.flush();
+
+            marshalledBytes = baOutputStream.toByteArray();
+
+        } catch (IOException e) {
+            logger.error(e.getStackTrace());
+        } finally {
+            try {
+                baOutputStream.close();
+                dout.close();
+            } catch (IOException e) {
+                logger.error(e.getStackTrace());
+            }
+        }
+
+        return marshalledBytes;
     }
 
     @Override
