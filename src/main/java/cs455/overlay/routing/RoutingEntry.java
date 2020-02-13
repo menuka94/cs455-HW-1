@@ -1,16 +1,27 @@
 package cs455.overlay.routing;
 
+import java.net.Socket;
+
 public class RoutingEntry {
     private int distance;
     private int nodeId;
     private String ipAddress;
     private int port;
+    private Socket socket;
 
     public RoutingEntry(int distance, int nodeId, String ipAddress, int port) {
         this.distance = distance;
         this.nodeId = nodeId;
         this.ipAddress = ipAddress;
         this.port = port;
+    }
+
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public void setSocket(Socket socket) {
+        this.socket = socket;
     }
 
     public String getIpAddress() {

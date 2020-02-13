@@ -44,4 +44,24 @@ public class RoutingTable {
             );
         }
     }
+
+    public boolean containsNodeId(int nodeId) {
+        for (RoutingEntry routingEntry : routingEntries) {
+            if (routingEntry.getNodeId() == nodeId) {
+                return true;
+            }
+        }
+        logger.warn("Node " + nodeId + " not found in the routing table");
+        return false;
+    }
+
+    public RoutingEntry getRoutingEntry(int nodeId) {
+        for (RoutingEntry routingEntry : routingEntries) {
+            if (routingEntry.getNodeId() == nodeId) {
+                return routingEntry;
+            }
+        }
+        logger.warn("Unable to retrieve node " + nodeId + " from the routing table");
+        return null;
+    }
 }
