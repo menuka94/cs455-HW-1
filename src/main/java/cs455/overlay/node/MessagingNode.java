@@ -162,7 +162,8 @@ public class MessagingNode implements Node {
                 routingEntry = routingTable.getRoutingEntry(destinationNodeId);
             } else {
                 // destination not found in the routing table
-                int bestNodeToSendData = findBestNodeToSendData();
+                int bestNodeToSendData = routingTable.
+                        findBestNodeToSendData(sendsDataEvent, allNodeIds);
                 routingEntry = routingTable.getRoutingEntry(bestNodeToSendData);
             }
             Socket socket = routingEntry.getSocket();
@@ -173,14 +174,6 @@ public class MessagingNode implements Node {
                 logger.error(e.getStackTrace());
             }
         }
-    }
-
-    private int findBestNodeToSendData() {
-        int bestNodeToSendData = 0;
-
-
-
-        return bestNodeToSendData;
     }
 
     /**

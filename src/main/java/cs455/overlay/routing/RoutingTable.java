@@ -2,6 +2,7 @@ package cs455.overlay.routing;
 
 import java.util.ArrayList;
 
+import cs455.overlay.wireformats.OverlayNodeSendsData;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -63,5 +64,14 @@ public class RoutingTable {
         }
         logger.warn("Unable to retrieve node " + nodeId + " from the routing table");
         return null;
+    }
+
+    public int findBestNodeToSendData(OverlayNodeSendsData sendsDataEvent, int[] allNodeIds) {
+        int bestNodeToSendData = 0;
+        int source = sendsDataEvent.getSourceId();
+        int destination = sendsDataEvent.getDestinationId();
+
+
+        return bestNodeToSendData;
     }
 }
