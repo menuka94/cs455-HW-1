@@ -54,7 +54,7 @@ public class InteractiveCommandParser extends Thread {
                 registry.listRoutingTables();
             } else if (nextCommand.contains(Constants.START)) {
                 int numberOfMessages = Integer.parseInt(nextCommand.split(" ")[1]);
-                System.out.println("TODO: Start " + numberOfMessages);
+                ((Registry) node).start(numberOfMessages);
             } else if (nextCommand.contains(Constants.SETUP_OVERLAY)) {
                 String[] args = nextCommand.split("\\s+");
                 int tableSize = 0;
@@ -91,6 +91,8 @@ public class InteractiveCommandParser extends Thread {
                 System.out.println("TODO: " + Constants.PRINT_COUNTERS_AND_DIAGNOSTICS);
             } else if (nextCommand.contains(Constants.EXIT_OVERLAY)) {
                 messagingNode.exitOverlay();
+            } else if (nextCommand.contains("print-routing-table")) {
+                messagingNode.printRoutingTable();
             } else {
                 System.out.println("Invalid command for messaging node: " + nextCommand);
             }

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
@@ -22,6 +23,7 @@ import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
+import cs455.overlay.wireformats.RegistryRequestsTaskInitiate;
 import cs455.overlay.wireformats.RegistrySendsNodeManifest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -83,8 +85,24 @@ public class Registry implements Node {
         }
     }
 
+    public void start(int noOfPacketsToSend) {
+        RegistryRequestsTaskInitiate taskInitiateEvent = new RegistryRequestsTaskInitiate();
+        taskInitiateEvent.setNoOfPacketsToSend(noOfPacketsToSend);
+
+        Collection<Socket> allSockets = registeredNodeSocketMap.values();
+        for (Socket socket : allSockets) {
+            TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+            try {
+                tcpConnection.sendData(taskInitiateEvent.getBytes());
+            } catch (IOException e) {
+                logger.error(e.getStackTrace());
+            }
+        }
+    }
+
     public void listMessagingNodes() {
         ArrayList<Integer> nodeIds = new ArrayList<>(registeredNodeSocketMap.keySet());
+        System.out.println("No. of Nodes: " + nodeIds.size());
         Collections.sort(nodeIds);
         for (int i = 0; i < nodeIds.size(); i++) {
             Integer nodeId = nodeIds.get(i);
@@ -256,7 +274,7 @@ public class Registry implements Node {
                 nodeIdsToSend[j] = nodeId;
                 ipAddressesToSend[j] = socket.getInetAddress().getHostAddress().getBytes();
                 ipAddressLengthsToSend[j] = (byte) ipAddressesToSend[j].length;
-                portsToSend[j] =  registeredNodeListeningPortMap.get(nodeId);
+                portsToSend[j] = registeredNodeListeningPortMap.get(nodeId);
 
                 RoutingEntry routingEntry = new RoutingEntry(distance, nodeId,
                         socket.getInetAddress().getHostAddress(), socket.getPort());

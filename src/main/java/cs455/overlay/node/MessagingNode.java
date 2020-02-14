@@ -136,6 +136,7 @@ public class MessagingNode implements Node {
         for (int i = 0; i < noOfPacketsToSend; i++) {
             OverlayNodeSendsData sendsDataEvent = new OverlayNodeSendsData();
             sendsDataEvent.setSourceId(getNodeId());
+            logger.info("Source ID: " + getNodeId());
 
             int payload = random.nextInt();
             sendsDataEvent.setPayload(payload);
@@ -145,6 +146,7 @@ public class MessagingNode implements Node {
             // select a node at random from the nodes in the network
             int destinationNodeIdPosition = random.nextInt(allNodeIds.length);
             int destinationNodeId = allNodeIds[destinationNodeIdPosition];
+            logger.info("Destination ID: " + destinationNodeId);
 
             // avoid sending packet to the node itself
             while (getNodeId() == destinationNodeId) {
@@ -158,12 +160,17 @@ public class MessagingNode implements Node {
             // check routing table
             RoutingEntry routingEntry;
             if (routingTable.containsNodeId(destinationNodeId)) {
+                logger.info("Destination node " + destinationNodeId + " found in node " +
+                        getNodeId() + "'s routing table. Sending directly.");
                 // send directly
                 routingEntry = routingTable.getRoutingEntry(destinationNodeId);
             } else {
+                logger.info("Destination node " + destinationNodeId + " not found in node " +
+                        getNodeId() + "'s routing table.");
                 // destination not found in the routing table
                 int bestNodeToSendData = routingTable.
                         findBestNodeToSendData(sendsDataEvent, allNodeIds);
+                logger.info("BEST NODE: " + bestNodeToSendData);
                 routingEntry = routingTable.getRoutingEntry(bestNodeToSendData);
             }
             Socket socket = routingEntry.getSocket();
@@ -332,5 +339,9 @@ public class MessagingNode implements Node {
 
     public void exitOverlay() throws IOException {
         sendDeregistrationRequestToRegistry();
+    }
+
+    public void printRoutingTable() {
+        routingTable.printRoutingTable();
     }
 }

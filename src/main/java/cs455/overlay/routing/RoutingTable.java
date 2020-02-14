@@ -1,6 +1,7 @@
 package cs455.overlay.routing;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import cs455.overlay.wireformats.OverlayNodeSendsData;
 import org.apache.logging.log4j.LogManager;
@@ -52,7 +53,6 @@ public class RoutingTable {
                 return true;
             }
         }
-        logger.warn("Node " + nodeId + " not found in the routing table");
         return false;
     }
 
@@ -67,10 +67,42 @@ public class RoutingTable {
     }
 
     public int findBestNodeToSendData(OverlayNodeSendsData sendsDataEvent, int[] allNodeIds) {
-        int bestNodeToSendData = 0;
-        int source = sendsDataEvent.getSourceId();
-        int destination = sendsDataEvent.getDestinationId();
+        int bestNodeToSendData = -1;
+        int sourceId = sendsDataEvent.getSourceId();
+        int destinationId = sendsDataEvent.getDestinationId();
+        int noOfHops;
 
+        int sourceIdIndex = Arrays.binarySearch(allNodeIds, sourceId);
+        int destinationIdIndex = Arrays.binarySearch(allNodeIds, destinationId);
+        int bestNodeDistance = -1;
+
+
+        if (destinationIdIndex < sourceIdIndex) {
+            noOfHops = allNodeIds.length - sourceIdIndex + destinationIdIndex;
+        } else { // destinationIdIndex > sourceIdIndex
+            noOfHops = destinationIdIndex - sourceIdIndex;
+        }
+
+        for (RoutingEntry r : routingEntries) {
+            if (r.getDistance() < noOfHops && r.getDistance() > bestNodeDistance) {
+                bestNodeDistance = r.getDistance();
+            }
+        }
+
+        if (bestNodeDistance == -1) {
+            logger.info("Error in choosing the best node");
+            return -1;
+        } else {
+            int bestNodeIndex = -1;
+            for (RoutingEntry r : routingEntries) {
+                if (r.getDistance() == bestNodeDistance) {
+                    bestNodeIndex = Arrays.binarySearch(allNodeIds, r.getNodeId());
+                    break;
+                }
+            }
+            bestNodeToSendData = allNodeIds[bestNodeIndex];
+
+        }
 
         return bestNodeToSendData;
     }
