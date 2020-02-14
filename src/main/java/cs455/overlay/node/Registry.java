@@ -18,13 +18,15 @@ import cs455.overlay.util.Constants;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
-import cs455.overlay.wireformats.OverlayNodeSendsData;
+import cs455.overlay.wireformats.OverlayNodeReportsTaskFinished;
+import cs455.overlay.wireformats.OverlayNodeReportsTrafficSummary;
 import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
 import cs455.overlay.wireformats.RegistryReportsDeregistrationStatus;
 import cs455.overlay.wireformats.RegistryReportsRegistrationStatus;
 import cs455.overlay.wireformats.RegistryRequestsTaskInitiate;
+import cs455.overlay.wireformats.RegistryRequestsTrafficSummary;
 import cs455.overlay.wireformats.RegistrySendsNodeManifest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -39,7 +41,14 @@ public class Registry implements Node {
     private Random random;
     private volatile HashMap<Integer, RoutingTable> routingTables;
     private volatile HashMap<Integer, Integer> registeredNodeListeningPortMap;
-    private int noOfConfirmedOverlayNodes = 0;
+    private volatile int noOfConfirmedOverlayNodes = 0;
+    private volatile int noOfTaskFinishedNodes = 0;
+    private volatile int noOfSummaryReportedNodes = 0;
+
+    private volatile int sumOfPacketsReceived;
+    private volatile int sumOfPacketsSent;
+    private volatile long noOfPacketsSent;
+    private volatile long noOfPacketsReceived;
 
     private Registry(int port) throws IOException {
         this.port = port;
@@ -73,17 +82,21 @@ public class Registry implements Node {
                 respondToNodeReportsOverlaySetupStatus(event);
                 break;
             case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
-                respondToOverlayNodeReportsTrafficSummary();
+                respondToOverlayNodeReportsTrafficSummary(event);
                 break;
             case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
-                respondToOverlayNodeReportsTaskFinished();
+                respondToOverlayNodeReportsTaskFinished(event);
                 break;
             default:
                 logger.warn("Unknown event type: " + type);
         }
     }
 
-    public void start(int noOfPacketsToSend) {
+    public synchronized void start(int noOfPacketsToSend) {
+        requestTaskInitiate(noOfPacketsToSend);
+    }
+
+    private void requestTaskInitiate(int noOfPacketsToSend) {
         RegistryRequestsTaskInitiate taskInitiateEvent = new RegistryRequestsTaskInitiate();
         taskInitiateEvent.setNoOfPacketsToSend(noOfPacketsToSend);
 
@@ -112,12 +125,61 @@ public class Registry implements Node {
         }
     }
 
-    private void respondToOverlayNodeReportsTaskFinished() {
+    private synchronized void respondToOverlayNodeReportsTaskFinished(Event event) {
+        OverlayNodeReportsTaskFinished taskFinishedEvent = (OverlayNodeReportsTaskFinished) event;
+        int receivedNodeId = taskFinishedEvent.getNodeId();
 
+        if (registeredNodeSocketMap.containsKey(receivedNodeId)) {
+            noOfTaskFinishedNodes++;
+        } else {
+            logger.warn("Node " + receivedNodeId + " is not registered.");
+        }
+
+        try {
+            Thread.sleep(200);
+        } catch (InterruptedException e) {
+            logger.error(e.getStackTrace());
+        }
+        if (noOfTaskFinishedNodes == noOfConfirmedOverlayNodes) {
+            // ready to request traffic summary
+            logger.info("All nodes have finished sending data.");
+            RegistryRequestsTrafficSummary requestsTrafficSummaryEvent =
+                    new RegistryRequestsTrafficSummary();
+
+            for (Socket socket : registeredNodeSocketMap.values()) {
+                TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+                try {
+                    tcpConnection.sendData(requestsTrafficSummaryEvent.getBytes());
+                } catch (IOException e) {
+                    logger.error(e.getStackTrace());
+                }
+            }
+
+        }
     }
 
-    private void respondToOverlayNodeReportsTrafficSummary() {
+    private synchronized void respondToOverlayNodeReportsTrafficSummary(Event event) {
+        OverlayNodeReportsTrafficSummary trafficSummaryEvent =
+                (OverlayNodeReportsTrafficSummary) event;
 
+        trafficSummaryEvent.getNodeId();
+        noOfPacketsReceived += trafficSummaryEvent.getNumPacketsReceived();
+        noOfPacketsSent += trafficSummaryEvent.getNumPacketsSent();
+        sumOfPacketsReceived += trafficSummaryEvent.getSumPacketsReceived();
+        sumOfPacketsSent += trafficSummaryEvent.getSumPacketsSent();
+
+        noOfSummaryReportedNodes++;
+
+        if(noOfSummaryReportedNodes == noOfTaskFinishedNodes) {
+            printSummaries();
+        }
+    }
+
+    private void printSummaries() {
+        logger.info("noOfPacketsReceived: " + noOfPacketsReceived);
+        logger.info("noOfPacketsSent: " + noOfPacketsSent);
+        logger.info("sumOfPacketsReceived: " + sumOfPacketsReceived);
+        logger.info("sumOfPacketsSent: " + sumOfPacketsSent);
     }
 
     private synchronized void respondToNodeReportsOverlaySetupStatus(Event event) {
@@ -192,9 +254,9 @@ public class Registry implements Node {
     private synchronized void registerOverlayNode(Event event) {
         OverlayNodeSendsRegistration overlayNodeSendsRegistration =
                 (OverlayNodeSendsRegistration) event;
-        logger.info("IP Address Length: " + overlayNodeSendsRegistration.getIpAddressLength());
-        System.out.println("IP Address: " + new String(overlayNodeSendsRegistration.getIpAddress()));
-        System.out.println("Port: " + overlayNodeSendsRegistration.getPort());
+        logger.debug("IP Address Length: " + overlayNodeSendsRegistration.getIpAddressLength());
+        logger.debug("IP Address: " + new String(overlayNodeSendsRegistration.getIpAddress()));
+        logger.debug("Port: " + overlayNodeSendsRegistration.getPort());
         int randomNodeId = 0;
 
         RegistryReportsRegistrationStatus responseEvent = new RegistryReportsRegistrationStatus();
