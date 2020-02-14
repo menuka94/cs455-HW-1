@@ -67,11 +67,38 @@ public class RoutingTable {
     }
 
     public int findBestNodeToSendData(OverlayNodeSendsData sendsDataEvent, int[] allNodeIds) {
-        int bestNodeToSendData = 0;
+        int bestNodeToSendData = -1;
         int source = sendsDataEvent.getSourceId();
         int destination = sendsDataEvent.getDestinationId();
 
+        int[] nodeIdsInRoutingTable = getNodeIdsInRoutingTable();
+
+        if (destination > source) {
+            for (int i = nodeIdsInRoutingTable.length - 1; i == 0; i--) {
+                if (nodeIdsInRoutingTable[i] < destination) {
+                    bestNodeToSendData = nodeIdsInRoutingTable[i];
+                    break;
+                }
+            }
+        } else {
+            // destination < source: (cannot be equal here)
+            for (int i = 0; i < nodeIdsInRoutingTable.length; i++) {
+
+            }
+        }
 
         return bestNodeToSendData;
+    }
+
+    public int[] getNodeIdsInRoutingTable() {
+        int[] nodeIdsInRoutingTable = new int[tableSize];
+        if (tableSize != routingEntries.size()) {
+            logger.warn("Table size does not match the number of entries in the routing table.");
+        }
+        for (int i = 0; i < tableSize; i++) {
+            nodeIdsInRoutingTable[i] = routingEntries.get(i).getNodeId();
+        }
+
+        return nodeIdsInRoutingTable;
     }
 }
