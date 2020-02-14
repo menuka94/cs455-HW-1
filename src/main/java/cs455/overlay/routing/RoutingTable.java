@@ -66,7 +66,7 @@ public class RoutingTable {
         return null;
     }
 
-    public int findBestNodeToSendData(OverlayNodeSendsData sendsDataEvent, int[] allNodeIds) {
+    public int getNextBestNode(OverlayNodeSendsData sendsDataEvent, int[] allNodeIds) {
         int bestNodeToSendData = -1;
         int sourceId = sendsDataEvent.getSourceId();
         int destinationId = sendsDataEvent.getDestinationId();
@@ -83,9 +83,10 @@ public class RoutingTable {
             noOfHops = destinationIdIndex - sourceIdIndex;
         }
 
-        for (RoutingEntry r : routingEntries) {
-            if (r.getDistance() < noOfHops && r.getDistance() > bestNodeDistance) {
-                bestNodeDistance = r.getDistance();
+        for (RoutingEntry routingEntry : routingEntries) {
+            if (routingEntry.getDistance() < noOfHops &&
+                    routingEntry.getDistance() > bestNodeDistance) {
+                bestNodeDistance = routingEntry.getDistance();
             }
         }
 

@@ -18,6 +18,7 @@ import cs455.overlay.util.Constants;
 import cs455.overlay.util.InteractiveCommandParser;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
+import cs455.overlay.wireformats.OverlayNodeSendsData;
 import cs455.overlay.wireformats.OverlayNodeSendsDeregistration;
 import cs455.overlay.wireformats.OverlayNodeSendsRegistration;
 import cs455.overlay.wireformats.Protocol;
@@ -34,10 +35,11 @@ public class Registry implements Node {
     private static boolean overlaySetup = false;
     private InteractiveCommandParser commandParser;
     private TCPServerThread tcpServerThread;
-    private HashMap<Integer, Socket> registeredNodeSocketMap;
+    private volatile HashMap<Integer, Socket> registeredNodeSocketMap;
     private Random random;
-    private HashMap<Integer, RoutingTable> routingTables;
-    private HashMap<Integer, Integer> registeredNodeListeningPortMap;
+    private volatile HashMap<Integer, RoutingTable> routingTables;
+    private volatile HashMap<Integer, Integer> registeredNodeListeningPortMap;
+    private int noOfConfirmedOverlayNodes = 0;
 
     private Registry(int port) throws IOException {
         this.port = port;
@@ -67,9 +69,6 @@ public class Registry implements Node {
             case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
                 deregisterOverlayNode(event);
                 break;
-            case Protocol.OVERLAY_NODE_SENDS_DATA:
-                respondToOverlayNodeSendsData();
-                break;
             case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
                 respondToNodeReportsOverlaySetupStatus(event);
                 break;
@@ -81,7 +80,6 @@ public class Registry implements Node {
                 break;
             default:
                 logger.warn("Unknown event type: " + type);
-                break;
         }
     }
 
@@ -122,25 +120,28 @@ public class Registry implements Node {
 
     }
 
-    private void respondToNodeReportsOverlaySetupStatus(Event event) {
+    private synchronized void respondToNodeReportsOverlaySetupStatus(Event event) {
         NodeReportsOverlaySetupStatus overlaySetupStatusEvent = (NodeReportsOverlaySetupStatus) event;
 
         int successStatus = overlaySetupStatusEvent.getSuccessStatus();
         if (successStatus == -1) {
             logger.warn(overlaySetupStatusEvent.getInfoString());
         } else if (registeredNodeSocketMap.containsKey(successStatus)) {
+            // successful
             logger.info(overlaySetupStatusEvent.getInfoString());
+            noOfConfirmedOverlayNodes++;
         } else {
             logger.warn("Node " + successStatus + " not found in registered messaging " +
                     "nodes");
         }
+
+        if (noOfConfirmedOverlayNodes == registeredNodeSocketMap.size()) {
+            logger.info("Registry now ready to initiate tasks.");
+        }
     }
 
-    private void respondToOverlayNodeSendsData() {
 
-    }
-
-    private void deregisterOverlayNode(Event event) {
+    private synchronized void deregisterOverlayNode(Event event) {
         OverlayNodeSendsDeregistration overlayNodeSendsDeregistration =
                 (OverlayNodeSendsDeregistration) event;
         Socket socket = overlayNodeSendsDeregistration.getSocket();
@@ -188,7 +189,7 @@ public class Registry implements Node {
         }
     }
 
-    private void registerOverlayNode(Event event) {
+    private synchronized void registerOverlayNode(Event event) {
         OverlayNodeSendsRegistration overlayNodeSendsRegistration =
                 (OverlayNodeSendsRegistration) event;
         logger.info("IP Address Length: " + overlayNodeSendsRegistration.getIpAddressLength());

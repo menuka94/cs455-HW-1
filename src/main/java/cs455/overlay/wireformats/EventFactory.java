@@ -27,8 +27,6 @@ public class EventFactory {
         byte b = ByteBuffer.wrap(data).get(0);
         logger.info("Event type: " + (int) b);
         switch ((int) b) {
-            case Protocol.OVERLAY_NODE_SENDS_DATA:
-                return new OverlayNodeSendsData(data);
             case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
                 logger.info("OVERLAY_NODE_SENDS_REGISTRATION");
                 OverlayNodeSendsRegistration registrationEvent = new OverlayNodeSendsRegistration(data);
@@ -57,15 +55,15 @@ public class EventFactory {
             case Protocol.REGISTRY_REQUESTS_TASK_INITIATE:
                 logger.info("REGISTRY_REQUESTS_TASK_INITIATE");
                 return new RegistryRequestsTaskInitiate(data);
+            case Protocol.OVERLAY_NODE_SENDS_DATA:
+                logger.info("OVERLAY_NODE_SENDS_DATA");
+                return new OverlayNodeSendsData(data);
             case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
                 logger.info("OVERLAY_NODE_REPORTS_TASK_FINISHED");
                 return new OverlayNodeReportsTaskFinished(data);
             case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
                 logger.info("REGISTRY_REQUESTS_TRAFFIC_SUMMARY");
                 return new RegistryRequestsTrafficSummary(data);
-            case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
-                logger.info("OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY");
-                return new OverlayNodeReportsTrafficSummary(data);
             default:
                 logger.error("Unknown event type");
                 return null;

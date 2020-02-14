@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import cs455.overlay.routing.RoutingEntry;
@@ -41,6 +42,7 @@ public class MessagingNode implements Node {
     private long receiveSummation;
 
     private int[] allNodeIds;
+    private HashMap<Integer, Socket> connectedNodeIdSocketMap;
 
     public MessagingNode(Socket registrySocket) throws IOException {
         registryConnection = new TCPConnection(registrySocket, this);
@@ -52,6 +54,7 @@ public class MessagingNode implements Node {
         commandParser.start();
 
         sendRegistrationRequestToRegistry();
+        connectedNodeIdSocketMap = new HashMap<>();
 
         sendTracker = 0;
         receiveTracker = 0;
@@ -64,7 +67,8 @@ public class MessagingNode implements Node {
     public static void main(String[] args) throws IOException {
 
         if (args.length < 2) {
-            logger.error("Not enough arguments to start messaging node. Please provide registryHost and registryPort.");
+            logger.error("Not enough arguments to start messaging node. " +
+                    "Please provide registryHost and registryPort.");
             System.exit(1);
         } else if (args.length > 2) {
             logger.error("Too many arguments. Only the registryHost and registryPort are needed.");
@@ -115,10 +119,14 @@ public class MessagingNode implements Node {
             case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
                 sendTaskSummaryToRegistry(event);
                 break;
+            case Protocol.OVERLAY_NODE_SENDS_DATA:
+                respondToOverlayNodeSendsData(event);
+                break;
             default:
-                logger.error("Unknown event type" + type);
+                logger.error("Unknown event type: " + type);
         }
     }
+
 
     private void sendTaskSummaryToRegistry(Event event) {
 
@@ -160,19 +168,20 @@ public class MessagingNode implements Node {
             // check routing table
             RoutingEntry routingEntry;
             if (routingTable.containsNodeId(destinationNodeId)) {
+                // send directly
                 logger.info("Destination node " + destinationNodeId + " found in node " +
                         getNodeId() + "'s routing table. Sending directly.");
-                // send directly
                 routingEntry = routingTable.getRoutingEntry(destinationNodeId);
             } else {
+                // destination not found in the routing table
                 logger.info("Destination node " + destinationNodeId + " not found in node " +
                         getNodeId() + "'s routing table.");
-                // destination not found in the routing table
-                int bestNodeToSendData = routingTable.
-                        findBestNodeToSendData(sendsDataEvent, allNodeIds);
-                logger.info("BEST NODE: " + bestNodeToSendData);
-                routingEntry = routingTable.getRoutingEntry(bestNodeToSendData);
+                int nextBestNode = routingTable.
+                        getNextBestNode(sendsDataEvent, allNodeIds);
+                logger.info("BEST NODE: " + nextBestNode);
+                routingEntry = routingTable.getRoutingEntry(nextBestNode);
             }
+
             Socket socket = routingEntry.getSocket();
             TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
             try {
@@ -259,6 +268,7 @@ public class MessagingNode implements Node {
                 TCPConnection tcpConnection = new TCPConnection(socket, this);
                 TCPConnectionsCache.addConnection(socket, tcpConnection);
                 routingEntry.setSocket(socket);
+                connectedNodeIdSocketMap.put(routingEntry.getNodeId(), socket);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -335,6 +345,39 @@ public class MessagingNode implements Node {
         deregistrationEvent.setNodeId(getNodeId());
 
         registryConnection.sendData(deregistrationEvent.getBytes());
+    }
+
+    private synchronized void respondToOverlayNodeSendsData(Event event) {
+        OverlayNodeSendsData nodeSendsDataEvent = (OverlayNodeSendsData) event;
+        nodeSendsDataEvent.setDisseminationTraceLength(nodeSendsDataEvent.
+                getDisseminationTraceLength() + 1);
+
+        int destinationId = nodeSendsDataEvent.getDestinationId();
+        if (destinationId == nodeId) {
+            // current node is packet's destination
+            receiveTracker++;
+            receiveSummation += nodeSendsDataEvent.getPayload();
+        } else {
+            // current node is not the destination
+            // check if the destination is found in current node's routing table
+            int nodeToSend;
+            if (routingTable.containsNodeId(destinationId)) {
+                nodeToSend = destinationId;
+            } else {
+                // not found in routing table
+                nodeSendsDataEvent.setSourceId(nodeId);
+                nodeToSend = routingTable.getNextBestNode(nodeSendsDataEvent, allNodeIds);
+            }
+            Socket socket = connectedNodeIdSocketMap.get(nodeToSend);
+            TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+            try {
+                tcpConnection.sendData(nodeSendsDataEvent.getBytes());
+            } catch (IOException e) {
+                logger.error(e.getStackTrace());
+            }
+
+            relayTracker++;
+        }
     }
 
     public void exitOverlay() throws IOException {

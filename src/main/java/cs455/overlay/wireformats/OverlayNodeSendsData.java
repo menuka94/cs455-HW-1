@@ -59,7 +59,7 @@ public class OverlayNodeSendsData extends Event {
         DataOutputStream dout = new DataOutputStream(new BufferedOutputStream(baOutputStream));
 
         try {
-            dout.writeByte(messageType);
+            dout.writeByte(getType());
             dout.writeInt(destinationId);
             dout.writeInt(sourceId);
             dout.writeInt(payload);
