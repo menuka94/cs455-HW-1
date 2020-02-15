@@ -93,7 +93,15 @@ public class Registry implements Node {
     }
 
     public synchronized void start(int noOfPacketsToSend) {
-        requestTaskInitiate(noOfPacketsToSend);
+        if (overlaySetup) {
+            noOfPacketsSent = 0;
+            noOfPacketsReceived = 0;
+            sumOfPacketsSent = 0;
+            sumOfPacketsReceived = 0;
+            requestTaskInitiate(noOfPacketsToSend);
+        } else {
+            logger.warn("Overlay has not been set up. Cannot start sending messages.");
+        }
     }
 
     private void requestTaskInitiate(int noOfPacketsToSend) {
@@ -146,6 +154,12 @@ public class Registry implements Node {
             RegistryRequestsTrafficSummary requestsTrafficSummaryEvent =
                     new RegistryRequestsTrafficSummary();
 
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                logger.error(e.getStackTrace());
+            }
+
             for (Socket socket : registeredNodeSocketMap.values()) {
                 TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
                 try {
@@ -170,7 +184,7 @@ public class Registry implements Node {
 
         noOfSummaryReportedNodes++;
 
-        if(noOfSummaryReportedNodes == noOfTaskFinishedNodes) {
+        if (noOfSummaryReportedNodes == noOfTaskFinishedNodes) {
             printSummaries();
         }
     }

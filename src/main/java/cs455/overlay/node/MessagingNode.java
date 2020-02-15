@@ -161,6 +161,12 @@ public class MessagingNode implements Node {
      * int: Number of data packets to send
      */
     private synchronized void initiateTask(Event event) {
+        sendTracker = 0;
+        receiveTracker = 0;
+        relayTracker = 0;
+        sendSummation = 0;
+        receiveSummation = 0;
+
         RegistryRequestsTaskInitiate taskInitiateEvent = (RegistryRequestsTaskInitiate) event;
         int noOfPacketsToSend = taskInitiateEvent.getNoOfPacketsToSend();
         Random random = new Random();
