@@ -217,7 +217,7 @@ public class Registry implements Node {
     }
 
 
-    private synchronized void deregisterOverlayNode(Event event) {
+    private void deregisterOverlayNode(Event event) {
         OverlayNodeSendsDeregistration overlayNodeSendsDeregistration =
                 (OverlayNodeSendsDeregistration) event;
         Socket socket = overlayNodeSendsDeregistration.getSocket();
@@ -265,7 +265,7 @@ public class Registry implements Node {
         }
     }
 
-    private synchronized void registerOverlayNode(Event event) {
+    private void registerOverlayNode(Event event) {
         OverlayNodeSendsRegistration overlayNodeSendsRegistration =
                 (OverlayNodeSendsRegistration) event;
         logger.debug("IP Address Length: " + overlayNodeSendsRegistration.getIpAddressLength());
@@ -277,50 +277,53 @@ public class Registry implements Node {
 
         byte[] registrationEventIpAddress = overlayNodeSendsRegistration.getIpAddress();
         Socket socket = overlayNodeSendsRegistration.getSocket();
-        if (!Arrays.equals(registrationEventIpAddress,
-                socket.getInetAddress().getAddress())) {
-            // Checking if there is a mismatch in the address that is specified in the registration
-            // request and the IP address of the request (the socket’s input stream).
-            logger.warn("IP addresses differ");
-            responseEvent.setSuccessStatus(-1);
-            String infoString = "mismatch in the address in the registration " +
-                    "request and the one in the request (the socket’s input stream)";
-            responseEvent.setInfoString(infoString);
-            responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
-        } else if (TCPConnectionsCache.containsConnection(socket)) {
-            if (registeredNodeSocketMap.containsValue(socket)) {
-                // checking if the node has already been registered
-                logger.warn("Node already registered");
-                responseEvent.setSuccessStatus(-1);
-                String infoString = "Node already registered";
-                responseEvent.setInfoString(infoString);
-                responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
-            } else {
-                // proceed to register the node
-                randomNodeId = random.nextInt(Constants.MAX_NODES) + 1; // add one to avoid zero
-                logger.info("Generated ID for new node: " + randomNodeId);
-                responseEvent.setSuccessStatus(randomNodeId);
-                String infoString = "Registration request successful. " +
-                        "The number of messaging nodes currently constituting the overlay " +
-                        "is (" + (registeredNodeSocketMap.size() + 1) + ")";
-                responseEvent.setInfoString(infoString);
-                responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
-            }
-        } else {
-            // connection not found in TCPConnectionCache. Something is wrong.
-            logger.error("Connection not found in TCPConnectionsCache. Please try again");
-            return;
-        }
+        synchronized (socket) {
 
-        TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
-        try {
-            tcpConnection.sendData(responseEvent.getBytes());
-            registeredNodeSocketMap.put(randomNodeId, socket);
-            registeredNodeListeningPortMap.put(randomNodeId,
-                    overlayNodeSendsRegistration.getPort());
-        } catch (IOException e) {
-            logger.error("Error sending ");
-            logger.error(e.getStackTrace());
+            if (!Arrays.equals(registrationEventIpAddress,
+                    socket.getInetAddress().getAddress())) {
+                // Checking if there is a mismatch in the address that is specified in the registration
+                // request and the IP address of the request (the socket’s input stream).
+                logger.warn("IP addresses differ");
+                responseEvent.setSuccessStatus(-1);
+                String infoString = "mismatch in the address in the registration " +
+                        "request and the one in the request (the socket’s input stream)";
+                responseEvent.setInfoString(infoString);
+                responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+            } else if (TCPConnectionsCache.containsConnection(socket)) {
+                if (registeredNodeSocketMap.containsValue(socket)) {
+                    // checking if the node has already been registered
+                    logger.warn("Node already registered");
+                    responseEvent.setSuccessStatus(-1);
+                    String infoString = "Node already registered";
+                    responseEvent.setInfoString(infoString);
+                    responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+                } else {
+                    // proceed to register the node
+                    randomNodeId = random.nextInt(Constants.MAX_NODES) + 1; // add one to avoid zero
+                    logger.info("Generated ID for new node: " + randomNodeId);
+                    responseEvent.setSuccessStatus(randomNodeId);
+                    String infoString = "Registration request successful. " +
+                            "The number of messaging nodes currently constituting the overlay " +
+                            "is (" + (registeredNodeSocketMap.size() + 1) + ")";
+                    responseEvent.setInfoString(infoString);
+                    responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+                }
+            } else {
+                // connection not found in TCPConnectionCache. Something is wrong.
+                logger.error("Connection not found in TCPConnectionsCache. Please try again");
+                return;
+            }
+
+            TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+            try {
+                tcpConnection.sendData(responseEvent.getBytes());
+                registeredNodeSocketMap.put(randomNodeId, socket);
+                registeredNodeListeningPortMap.put(randomNodeId,
+                        overlayNodeSendsRegistration.getPort());
+            } catch (IOException e) {
+                logger.error("Error sending ");
+                logger.error(e.getStackTrace());
+            }
         }
     }
 
