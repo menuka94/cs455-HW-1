@@ -136,7 +136,7 @@ public class Registry implements Node {
         }
 
         try {
-            Thread.sleep(200);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             logger.error(e.getStackTrace());
         }

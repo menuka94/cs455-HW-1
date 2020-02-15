@@ -91,7 +91,7 @@ public class RoutingTable {
         }
 
         if (bestNodeDistance == -1) {
-            logger.info("Error in choosing the best node");
+            logger.warn("Error in choosing the best node");
             return -1;
         } else {
             int bestNodeIndex = -1;

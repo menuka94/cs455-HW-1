@@ -12,5 +12,3 @@ OPTION='--tab -t "'$machine'" -e "ssh -t '$machine' cd '$DIR'; echo '$SCRIPT'; '
 COMMAND+=" $OPTION"
 done
 eval $COMMAND &
-
-832864124

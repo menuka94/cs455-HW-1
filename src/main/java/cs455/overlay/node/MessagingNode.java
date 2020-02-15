@@ -131,7 +131,7 @@ public class MessagingNode implements Node {
     }
 
 
-    private void sendTaskSummaryToRegistry(Event event) {
+    private synchronized void sendTaskSummaryToRegistry(Event event) {
         OverlayNodeReportsTrafficSummary trafficSummaryEvent = new OverlayNodeReportsTrafficSummary();
         trafficSummaryEvent.setNodeId(nodeId);
         trafficSummaryEvent.setNumPacketsReceived(receiveTracker);
@@ -168,7 +168,7 @@ public class MessagingNode implements Node {
         for (int i = 0; i < noOfPacketsToSend; i++) {
             OverlayNodeSendsData sendsDataEvent = new OverlayNodeSendsData();
             sendsDataEvent.setSourceId(getNodeId());
-            logger.info("Source ID: " + getNodeId());
+            logger.debug("Source ID: " + getNodeId());
 
             int payload = random.nextInt();
             sendsDataEvent.setPayload(payload);
@@ -176,7 +176,7 @@ public class MessagingNode implements Node {
             // select a node at random from the nodes in the network
             int destinationNodeIdPosition = random.nextInt(allNodeIds.length);
             int destinationNodeId = allNodeIds[destinationNodeIdPosition];
-            logger.info("Destination ID: " + destinationNodeId);
+            logger.debug("Destination ID: " + destinationNodeId);
 
             // avoid sending packet to the node itself
             while (getNodeId() == destinationNodeId) {
@@ -191,16 +191,16 @@ public class MessagingNode implements Node {
             RoutingEntry routingEntry;
             if (routingTable.containsNodeId(destinationNodeId)) {
                 // send directly
-                logger.info("Destination node " + destinationNodeId + " found in node " +
+                logger.debug("Destination node " + destinationNodeId + " found in node " +
                         getNodeId() + "'s routing table. Sending directly.");
                 routingEntry = routingTable.getRoutingEntry(destinationNodeId);
             } else {
                 // destination not found in the routing table
-                logger.info("Destination node " + destinationNodeId + " not found in node " +
+                logger.debug("Destination node " + destinationNodeId + " not found in node " +
                         getNodeId() + "'s routing table.");
                 int nextBestNode = routingTable.
                         getNextBestNode(sendsDataEvent, allNodeIds);
-                logger.info("BEST NODE: " + nextBestNode);
+                logger.debug("BEST NODE: " + nextBestNode);
                 routingEntry = routingTable.getRoutingEntry(nextBestNode);
             }
 
@@ -213,6 +213,12 @@ public class MessagingNode implements Node {
             } catch (IOException e) {
                 logger.error(e.getStackTrace());
             }
+        }
+
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            logger.error(e.getStackTrace());
         }
         reportTaskFinished();
     }
@@ -315,7 +321,7 @@ public class MessagingNode implements Node {
 
     }
 
-    private void handleRegistryReportsRegistrationStatus(Event event) {
+    private synchronized void handleRegistryReportsRegistrationStatus(Event event) {
         RegistryReportsRegistrationStatus registrationStatus =
                 (RegistryReportsRegistrationStatus) event;
         int successStatus = registrationStatus.getSuccessStatus();
@@ -330,7 +336,7 @@ public class MessagingNode implements Node {
         }
     }
 
-    private void handleRegistryReportsDeregistrationStatus(Event event) {
+    private synchronized void handleRegistryReportsDeregistrationStatus(Event event) {
         RegistryReportsDeregistrationStatus deregistrationStatus =
                 (RegistryReportsDeregistrationStatus) event;
         int successStatus = deregistrationStatus.getSuccessStatus();
