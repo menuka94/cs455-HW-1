@@ -143,8 +143,9 @@ public class Registry implements Node {
             logger.warn("Node " + receivedNodeId + " is not registered.");
         }
 
+        logger.info("Waiting for all nodes to finish sending messages.");
         try {
-            Thread.sleep(200);
+            Thread.sleep(10000);
         } catch (InterruptedException e) {
             logger.error(e.getStackTrace());
         }
@@ -154,11 +155,6 @@ public class Registry implements Node {
             RegistryRequestsTrafficSummary requestsTrafficSummaryEvent =
                     new RegistryRequestsTrafficSummary();
 
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                logger.error(e.getStackTrace());
-            }
 
             for (Socket socket : registeredNodeSocketMap.values()) {
                 TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
