@@ -25,7 +25,6 @@ public class EventFactory {
     public Event getEvent(byte[] data, Socket socket)
             throws IOException {
         byte b = ByteBuffer.wrap(data).get(0);
-        logger.info("Event type: " + (int) b);
         switch ((int) b) {
             case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
                 logger.debug("OVERLAY_NODE_SENDS_REGISTRATION");
@@ -70,7 +69,7 @@ public class EventFactory {
                 logger.info("OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY");
                 return new OverlayNodeReportsTrafficSummary(data);
             default:
-                logger.error("Unknown event type");
+                logger.error("Unknown event type: " + (int) b);
                 return null;
         }
 

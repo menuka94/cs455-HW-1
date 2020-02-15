@@ -145,13 +145,17 @@ public class Registry implements Node {
 
         logger.info("Waiting for all nodes to finish sending messages.");
         try {
-            Thread.sleep(10000);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
             logger.error(e.getStackTrace());
         }
+
+        logger.debug("Waiting complete");
+        logger.debug("noOfTaskFinishedNodes: " + noOfTaskFinishedNodes);
+        logger.debug("noOfConfirmedOverlayNodes: " + noOfConfirmedOverlayNodes);
         if (noOfTaskFinishedNodes == noOfConfirmedOverlayNodes) {
             // ready to request traffic summary
-            logger.info("All nodes have finished sending data.");
+            logger.debug("All nodes have finished sending data.");
             RegistryRequestsTrafficSummary requestsTrafficSummaryEvent =
                     new RegistryRequestsTrafficSummary();
 

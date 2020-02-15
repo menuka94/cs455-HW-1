@@ -161,6 +161,7 @@ public class MessagingNode implements Node {
      * int: Number of data packets to send
      */
     private synchronized void initiateTask(Event event) {
+        logger.info("Node " + nodeId + " starting to send messages");
         sendTracker = 0;
         receiveTracker = 0;
         relayTracker = 0;
@@ -197,16 +198,15 @@ public class MessagingNode implements Node {
             RoutingEntry routingEntry;
             if (routingTable.containsNodeId(destinationNodeId)) {
                 // send directly
-                logger.info("Destination node " + destinationNodeId + " found in node " +
+                logger.debug("Destination node " + destinationNodeId + " found in node " +
                         getNodeId() + "'s routing table. Sending directly.");
                 routingEntry = routingTable.getRoutingEntry(destinationNodeId);
             } else {
                 // destination not found in the routing table
-                logger.info("Destination node " + destinationNodeId + " not found in node " +
+                logger.debug("Destination node " + destinationNodeId + " not found in node " +
                         getNodeId() + "'s routing table.");
                 int nextBestNode = routingTable.
                         getNextBestNode(sendsDataEvent, allNodeIds);
-                logger.info("BEST NODE: " + nextBestNode);
                 routingEntry = routingTable.getRoutingEntry(nextBestNode);
             }
 
