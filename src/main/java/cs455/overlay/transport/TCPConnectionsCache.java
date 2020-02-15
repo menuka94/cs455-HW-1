@@ -8,7 +8,7 @@ public class TCPConnectionsCache {
     private static HashMap<Socket, TCPConnection> cachedConnections
             = new HashMap<>();
 
-    public static void addConnection(Socket socket, TCPConnection tcpConnection) {
+    public synchronized static void addConnection(Socket socket, TCPConnection tcpConnection) {
         cachedConnections.put(socket, tcpConnection);
     }
 
@@ -16,7 +16,7 @@ public class TCPConnectionsCache {
         return cachedConnections.get(socket);
     }
 
-    public static void removeConnection(Socket socket) {
+    public synchronized static void removeConnection(Socket socket) {
         cachedConnections.remove(socket);
     }
 

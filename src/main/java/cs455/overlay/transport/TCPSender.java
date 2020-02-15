@@ -3,7 +3,6 @@ package cs455.overlay.transport;
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -19,9 +18,11 @@ public class TCPSender {
     }
 
     public void sendData(byte[] dataToSend) throws IOException {
-        int dataLength = dataToSend.length;
-        dout.writeInt(dataLength);
-        dout.write(dataToSend, 0, dataLength);
-        dout.flush();
+        synchronized (socket) {
+            int dataLength = dataToSend.length;
+            dout.writeInt(dataLength);
+            dout.write(dataToSend, 0, dataLength);
+            dout.flush();
+        }
     }
 }

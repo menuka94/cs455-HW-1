@@ -39,11 +39,11 @@ public class Registry implements Node {
     private TCPServerThread tcpServerThread;
     private volatile HashMap<Integer, Socket> registeredNodeSocketMap;
     private Random random;
-    private volatile HashMap<Integer, RoutingTable> routingTables;
-    private volatile HashMap<Integer, Integer> registeredNodeListeningPortMap;
-    private volatile int noOfConfirmedOverlayNodes = 0;
-    private volatile int noOfTaskFinishedNodes = 0;
-    private volatile int noOfSummaryReportedNodes = 0;
+    private HashMap<Integer, RoutingTable> routingTables;
+    private HashMap<Integer, Integer> registeredNodeListeningPortMap;
+    private int noOfConfirmedOverlayNodes = 0;
+    private int noOfTaskFinishedNodes = 0;
+    private int noOfSummaryReportedNodes = 0;
 
     private volatile int sumOfPacketsReceived;
     private volatile int sumOfPacketsSent;
@@ -92,7 +92,11 @@ public class Registry implements Node {
         }
     }
 
-    public synchronized void start(int noOfPacketsToSend) {
+    public void start(int noOfPacketsToSend) {
+        noOfPacketsReceived = 0;
+        noOfPacketsSent = 0;
+        sumOfPacketsReceived = 0;
+        sumOfPacketsSent = 0;
         requestTaskInitiate(noOfPacketsToSend);
     }
 
@@ -125,7 +129,7 @@ public class Registry implements Node {
         }
     }
 
-    private synchronized void respondToOverlayNodeReportsTaskFinished(Event event) {
+    private void respondToOverlayNodeReportsTaskFinished(Event event) {
         OverlayNodeReportsTaskFinished taskFinishedEvent = (OverlayNodeReportsTaskFinished) event;
         int receivedNodeId = taskFinishedEvent.getNodeId();
 
@@ -136,7 +140,7 @@ public class Registry implements Node {
         }
 
         try {
-            Thread.sleep(200);
+            Thread.sleep(20000);
         } catch (InterruptedException e) {
             logger.error(e.getStackTrace());
         }
@@ -146,6 +150,7 @@ public class Registry implements Node {
             RegistryRequestsTrafficSummary requestsTrafficSummaryEvent =
                     new RegistryRequestsTrafficSummary();
 
+            logger.info("REGISTERED NODES: " + registeredNodeSocketMap.size());
             for (Socket socket : registeredNodeSocketMap.values()) {
                 TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
                 try {
@@ -170,7 +175,10 @@ public class Registry implements Node {
 
         noOfSummaryReportedNodes++;
 
-        if(noOfSummaryReportedNodes == noOfTaskFinishedNodes) {
+        logger.info("noOfSummaryReportedNodes: " + noOfSummaryReportedNodes);
+        logger.info("noOfTaskFinishedNodes: " + noOfTaskFinishedNodes);
+
+        if (noOfSummaryReportedNodes == noOfTaskFinishedNodes) {
             printSummaries();
         }
     }
@@ -182,7 +190,7 @@ public class Registry implements Node {
         logger.info("sumOfPacketsSent: " + sumOfPacketsSent);
     }
 
-    private synchronized void respondToNodeReportsOverlaySetupStatus(Event event) {
+    private void respondToNodeReportsOverlaySetupStatus(Event event) {
         NodeReportsOverlaySetupStatus overlaySetupStatusEvent = (NodeReportsOverlaySetupStatus) event;
 
         int successStatus = overlaySetupStatusEvent.getSuccessStatus();
@@ -203,7 +211,7 @@ public class Registry implements Node {
     }
 
 
-    private synchronized void deregisterOverlayNode(Event event) {
+    private void deregisterOverlayNode(Event event) {
         OverlayNodeSendsDeregistration overlayNodeSendsDeregistration =
                 (OverlayNodeSendsDeregistration) event;
         Socket socket = overlayNodeSendsDeregistration.getSocket();
@@ -251,7 +259,7 @@ public class Registry implements Node {
         }
     }
 
-    private synchronized void registerOverlayNode(Event event) {
+    private void registerOverlayNode(Event event) {
         OverlayNodeSendsRegistration overlayNodeSendsRegistration =
                 (OverlayNodeSendsRegistration) event;
         logger.debug("IP Address Length: " + overlayNodeSendsRegistration.getIpAddressLength());
@@ -286,11 +294,13 @@ public class Registry implements Node {
                 randomNodeId = random.nextInt(Constants.MAX_NODES) + 1; // add one to avoid zero
                 logger.info("Generated ID for new node: " + randomNodeId);
                 responseEvent.setSuccessStatus(randomNodeId);
-                String infoString = "Registration request successful. " +
-                        "The number of messaging nodes currently constituting the overlay " +
-                        "is (" + (registeredNodeSocketMap.size() + 1) + ")";
-                responseEvent.setInfoString(infoString);
-                responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+                synchronized (this) {
+                    String infoString = "Registration request successful. " +
+                            "The number of messaging nodes currently constituting the overlay " +
+                            "is (" + (registeredNodeSocketMap.size() + 1) + ")";
+                    responseEvent.setInfoString(infoString);
+                    responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
+                }
             }
         } else {
             // connection not found in TCPConnectionCache. Something is wrong.
@@ -301,9 +311,11 @@ public class Registry implements Node {
         TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
         try {
             tcpConnection.sendData(responseEvent.getBytes());
-            registeredNodeSocketMap.put(randomNodeId, socket);
-            registeredNodeListeningPortMap.put(randomNodeId,
-                    overlayNodeSendsRegistration.getPort());
+            synchronized (this) {
+                registeredNodeSocketMap.put(randomNodeId, socket);
+                registeredNodeListeningPortMap.put(randomNodeId,
+                        overlayNodeSendsRegistration.getPort());
+            }
         } catch (IOException e) {
             logger.error("Error sending ");
             logger.error(e.getStackTrace());
