@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
@@ -45,7 +46,7 @@ public class MessagingNode implements Node {
     private volatile long receiveSummation;
 
     private int[] allNodeIds;
-    private HashMap<Integer, Socket> connectedNodeIdSocketMap;
+    private ConcurrentHashMap<Integer, Socket> connectedNodeIdSocketMap;
 
     public MessagingNode(Socket registrySocket) throws IOException {
         registryConnection = new TCPConnection(registrySocket, this);
@@ -57,7 +58,7 @@ public class MessagingNode implements Node {
         commandParser.start();
 
         sendRegistrationRequestToRegistry();
-        connectedNodeIdSocketMap = new HashMap<>();
+        connectedNodeIdSocketMap = new ConcurrentHashMap<>();
 
         sendTracker = 0;
         receiveTracker = 0;

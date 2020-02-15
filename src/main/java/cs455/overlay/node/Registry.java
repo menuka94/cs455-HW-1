@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
@@ -39,8 +40,8 @@ public class Registry implements Node {
     private TCPServerThread tcpServerThread;
     private volatile HashMap<Integer, Socket> registeredNodeSocketMap;
     private Random random;
-    private volatile HashMap<Integer, RoutingTable> routingTables;
-    private volatile HashMap<Integer, Integer> registeredNodeListeningPortMap;
+    private volatile ConcurrentHashMap<Integer, RoutingTable> routingTables;
+    private volatile ConcurrentHashMap<Integer, Integer> registeredNodeListeningPortMap;
     private volatile int noOfConfirmedOverlayNodes = 0;
     private volatile int noOfTaskFinishedNodes = 0;
     private volatile int noOfSummaryReportedNodes = 0;
@@ -57,7 +58,7 @@ public class Registry implements Node {
         commandParser = new InteractiveCommandParser(this);
         commandParser.start();
         registeredNodeSocketMap = new HashMap<>();
-        registeredNodeListeningPortMap = new HashMap<>();
+        registeredNodeListeningPortMap = new ConcurrentHashMap<>();
         random = new Random();
     }
 
@@ -328,7 +329,7 @@ public class Registry implements Node {
     }
 
     public void setupOverlay(final int tableSize) {
-        routingTables = new HashMap<>();
+        routingTables = new ConcurrentHashMap<>();
         Set<Integer> nodeIdsSet = registeredNodeSocketMap.keySet();
         ArrayList<Integer> sortedNodeIds = new ArrayList<>(nodeIdsSet);
         Collections.sort(sortedNodeIds);  // sort the NodeIDs in ascending order
