@@ -93,6 +93,8 @@ public class InteractiveCommandParser extends Thread {
                 messagingNode.exitOverlay();
             } else if (nextCommand.contains("print-routing-table")) {
                 messagingNode.printRoutingTable();
+            } else if (nextCommand.contains("print-id")) {
+                messagingNode.printNodeId();
             } else {
                 System.out.println("Invalid command for messaging node: " + nextCommand);
             }

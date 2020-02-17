@@ -6,7 +6,6 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
 
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
@@ -46,7 +45,7 @@ public class MessagingNode implements Node {
     private volatile long receiveSummation;
 
     private int[] allNodeIds;
-    private ConcurrentHashMap<Integer, Socket> connectedNodeIdSocketMap;
+    private HashMap<Integer, Socket> connectedNodeIdSocketMap;
 
     public MessagingNode(Socket registrySocket) throws IOException {
         registryConnection = new TCPConnection(registrySocket, this);
@@ -58,7 +57,7 @@ public class MessagingNode implements Node {
         commandParser.start();
 
         sendRegistrationRequestToRegistry();
-        connectedNodeIdSocketMap = new ConcurrentHashMap<>();
+        connectedNodeIdSocketMap = new HashMap<>();
 
         sendTracker = 0;
         receiveTracker = 0;
@@ -349,8 +348,8 @@ public class MessagingNode implements Node {
             logger.info(deregistrationStatus.getInfoString());
             commandParser.stopAcceptingCommands();
             Socket socket = deregistrationStatus.getSocket();
-            // TODO: properly stop commandParser thread
-            commandParser.interrupt();
+            logger.info("Stopping node ...");
+            System.exit(0);
         } else {
             logger.warn("Deregistration failed. Reason unknown.");
         }
@@ -432,5 +431,9 @@ public class MessagingNode implements Node {
 
     public void printRoutingTable() {
         routingTable.printRoutingTable();
+    }
+
+    public void printNodeId() {
+        System.out.println("Node ID: " + nodeId);
     }
 }
