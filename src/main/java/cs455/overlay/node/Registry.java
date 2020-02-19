@@ -17,6 +17,7 @@ import cs455.overlay.transport.TCPConnectionsCache;
 import cs455.overlay.transport.TCPServerThread;
 import cs455.overlay.util.Constants;
 import cs455.overlay.util.InteractiveCommandParser;
+import cs455.overlay.util.StatisticsCollectorAndDisplay;
 import cs455.overlay.wireformats.Event;
 import cs455.overlay.wireformats.NodeReportsOverlaySetupStatus;
 import cs455.overlay.wireformats.OverlayNodeReportsTaskFinished;
@@ -50,6 +51,7 @@ public class Registry implements Node {
     private volatile int sumOfPacketsSent;
     private volatile long noOfPacketsSent;
     private volatile long noOfPacketsReceived;
+    private StatisticsCollectorAndDisplay statisticsCollector;
 
     private TCPConnectionsCache tcpConnectionsCache;
 
@@ -163,6 +165,7 @@ public class Registry implements Node {
             RegistryRequestsTrafficSummary requestsTrafficSummaryEvent =
                     new RegistryRequestsTrafficSummary();
 
+            statisticsCollector = new StatisticsCollectorAndDisplay(noOfTaskFinishedNodes);
 
             for (Socket socket : registeredNodeSocketMap.values()) {
                 TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
@@ -172,7 +175,6 @@ public class Registry implements Node {
                     logger.error(e.getStackTrace());
                 }
             }
-
         }
     }
 
@@ -188,8 +190,9 @@ public class Registry implements Node {
 
         noOfSummaryReportedNodes++;
 
+        statisticsCollector.add(trafficSummaryEvent);
+
         if (noOfSummaryReportedNodes == noOfTaskFinishedNodes) {
-            printSummaries();
 
             // clear counters for next iteration
             noOfTaskFinishedNodes = 0;
