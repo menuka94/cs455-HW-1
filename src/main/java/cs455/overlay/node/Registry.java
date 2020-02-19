@@ -190,6 +190,10 @@ public class Registry implements Node {
 
         if (noOfSummaryReportedNodes == noOfTaskFinishedNodes) {
             printSummaries();
+
+            // clear counters for next iteration
+            noOfTaskFinishedNodes = 0;
+            noOfSummaryReportedNodes = 0;
         }
     }
 
