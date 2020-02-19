@@ -47,15 +47,19 @@ public class MessagingNode implements Node {
     private int[] allNodeIds;
     private HashMap<Integer, Socket> connectedNodeIdSocketMap;
 
+    private TCPConnectionsCache tcpConnectionsCache;
+
     public MessagingNode(Socket registrySocket) throws IOException {
         registryConnection = new TCPConnection(registrySocket, this);
 
-        tcpServerThread = new TCPServerThread(0, this);
+        tcpConnectionsCache = new TCPConnectionsCache();
+        tcpServerThread = new TCPServerThread(0, this, tcpConnectionsCache);
 
         commandParser = new InteractiveCommandParser(this);
 
         sendRegistrationRequestToRegistry();
         connectedNodeIdSocketMap = new HashMap<>();
+
 
         sendTracker = 0;
         receiveTracker = 0;
@@ -87,8 +91,8 @@ public class MessagingNode implements Node {
         MessagingNode node = new MessagingNode(socket);
         node.initialize();
         TCPConnection connection;
-        if (TCPConnectionsCache.containsConnection(socket)) {
-            connection = TCPConnectionsCache.getConnection(socket);
+        if (node.tcpConnectionsCache.containsConnection(socket)) {
+            connection = node.tcpConnectionsCache.getConnection(socket);
             logger.info("Connection found in TCPConnectionsCache");
         } else {
             logger.info("Connection not found in TCPConnectionsCache. " +
@@ -214,7 +218,7 @@ public class MessagingNode implements Node {
             }
 
             Socket socket = routingEntry.getSocket();
-            TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+            TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
             try {
                 tcpConnection.sendData(sendsDataEvent.getBytes());
                 sendTracker++;
@@ -314,7 +318,7 @@ public class MessagingNode implements Node {
                 InetAddress byAddress = InetAddress.getByName(routingEntry.getIpAddress());
                 Socket socket = new Socket(byAddress.getHostAddress(), routingEntry.getPort());
                 TCPConnection tcpConnection = new TCPConnection(socket, this);
-                TCPConnectionsCache.addConnection(socket, tcpConnection);
+                tcpConnectionsCache.addConnection(socket, tcpConnection);
                 routingEntry.setSocket(socket);
                 connectedNodeIdSocketMap.put(routingEntry.getNodeId(), socket);
             } catch (IOException e) {
@@ -417,7 +421,7 @@ public class MessagingNode implements Node {
                 nodeToSend = routingTable.getNextBestNode(nodeSendsDataEvent, allNodeIds);
             }
             Socket socket = connectedNodeIdSocketMap.get(nodeToSend);
-            TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+            TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
             try {
                 tcpConnection.sendData(nodeSendsDataEvent.getBytes());
             } catch (IOException e) {

@@ -13,11 +13,14 @@ public class TCPServerThread extends Thread {
     private ServerSocket serverSocket;
     private int listenPort;
     private Node node;
+    private TCPConnectionsCache tcpConnectionsCache;
 
-    public TCPServerThread(int listenPort, Node node) throws IOException {
+    public TCPServerThread(int listenPort, Node node, TCPConnectionsCache tcpConnectionsCache)
+            throws IOException {
         serverSocket = new ServerSocket(listenPort);
         this.listenPort = serverSocket.getLocalPort();
         this.node = node;
+        this.tcpConnectionsCache = tcpConnectionsCache;
     }
 
     @Override
@@ -29,7 +32,7 @@ public class TCPServerThread extends Thread {
                 logger.info("Server is accepting connections on port " + listenPort);
                 Socket socket = serverSocket.accept();
                 TCPConnection tcpConnection = new TCPConnection(socket, node);
-                TCPConnectionsCache.addConnection(socket, tcpConnection);
+                tcpConnectionsCache.addConnection(socket, tcpConnection);
                 logger.info("New Connection Established with " +
                         tcpConnection.getSocket().getInetAddress().getHostAddress() + " on port " +
                         tcpConnection.getDestinationPort());

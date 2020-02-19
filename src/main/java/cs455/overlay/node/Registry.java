@@ -51,9 +51,12 @@ public class Registry implements Node {
     private volatile long noOfPacketsSent;
     private volatile long noOfPacketsReceived;
 
+    private TCPConnectionsCache tcpConnectionsCache;
+
     private Registry(int port) throws IOException {
         this.port = port;
-        tcpServerThread = new TCPServerThread(port, this);
+        tcpConnectionsCache = new TCPConnectionsCache();
+        tcpServerThread = new TCPServerThread(port, this, tcpConnectionsCache);
         commandParser = new InteractiveCommandParser(this);
         registeredNodeSocketMap = new HashMap<>();
         registeredNodeListeningPortMap = new ConcurrentHashMap<>();
@@ -111,7 +114,7 @@ public class Registry implements Node {
 
         Collection<Socket> allSockets = registeredNodeSocketMap.values();
         for (Socket socket : allSockets) {
-            TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+            TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
             try {
                 tcpConnection.sendData(taskInitiateEvent.getBytes());
             } catch (IOException e) {
@@ -162,7 +165,7 @@ public class Registry implements Node {
 
 
             for (Socket socket : registeredNodeSocketMap.values()) {
-                TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+                TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
                 try {
                     tcpConnection.sendData(requestsTrafficSummaryEvent.getBytes());
                 } catch (IOException e) {
@@ -238,7 +241,7 @@ public class Registry implements Node {
             responseEvent.setSuccessStatus(-1);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
             responseEvent.setInfoString(infoString);
-        } else if (!TCPConnectionsCache.containsConnection(socket)) {
+        } else if (!tcpConnectionsCache.containsConnection(socket)) {
             String infoString = "Connection not found in TCPConnectionsCache";
             logger.warn(infoString);
             responseEvent.setSuccessStatus(-1);
@@ -257,10 +260,10 @@ public class Registry implements Node {
             responseEvent.setInfoString(infoString);
         }
 
-        TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+        TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
         try {
             tcpConnection.sendData(responseEvent.getBytes());
-            TCPConnectionsCache.removeConnection(socket);
+            tcpConnectionsCache.removeConnection(socket);
         } catch (IOException e) {
             logger.error(e.getStackTrace());
         }
@@ -289,7 +292,7 @@ public class Registry implements Node {
                     "request and the one in the request (the socket’s input stream)";
             responseEvent.setInfoString(infoString);
             responseEvent.setLengthOfInfoString((byte) infoString.getBytes().length);
-        } else if (TCPConnectionsCache.containsConnection(socket)) {
+        } else if (tcpConnectionsCache.containsConnection(socket)) {
             if (registeredNodeSocketMap.containsValue(socket)) {
                 // checking if the node has already been registered
                 logger.warn("Node already registered");
@@ -321,7 +324,7 @@ public class Registry implements Node {
             return;
         }
 
-        TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+        TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
         try {
             tcpConnection.sendData(responseEvent.getBytes());
             registeredNodeSocketMap.put(randomNodeId, socket);
@@ -393,7 +396,7 @@ public class Registry implements Node {
     }
 
     private void sendRoutingTable(RegistrySendsNodeManifest event, Socket socket) {
-        TCPConnection tcpConnection = TCPConnectionsCache.getConnection(socket);
+        TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
         try {
             tcpConnection.sendData(event.getBytes());
         } catch (IOException e) {

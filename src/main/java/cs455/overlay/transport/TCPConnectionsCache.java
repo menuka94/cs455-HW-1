@@ -5,26 +5,28 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class TCPConnectionsCache {
-    private static HashMap<Socket, TCPConnection> cachedConnections
+    private HashMap<Socket, TCPConnection> cachedConnections
             = new HashMap<>();
 
-    public static void addConnection(Socket socket, TCPConnection tcpConnection) {
+    private TCPConnectionsCache instance;
+
+    public synchronized void addConnection(Socket socket, TCPConnection tcpConnection) {
         cachedConnections.put(socket, tcpConnection);
     }
 
-    public static TCPConnection getConnection(Socket socket) {
+    public synchronized TCPConnection getConnection(Socket socket) {
         return cachedConnections.get(socket);
     }
 
-    public static void removeConnection(Socket socket) {
+    public synchronized void removeConnection(Socket socket) {
         cachedConnections.remove(socket);
     }
 
-    public static synchronized boolean containsConnection(Socket socket) {
+    public synchronized boolean containsConnection(Socket socket) {
         return cachedConnections.containsKey(socket);
     }
 
-    public static void printConnections() {
+    public void printConnections() {
         Set<Socket> sockets = cachedConnections.keySet();
         if (sockets.size() == 0) {
             System.out.println("No messaging nodes have been registered");
