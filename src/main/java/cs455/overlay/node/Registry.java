@@ -10,6 +10,9 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
+
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
@@ -47,10 +50,6 @@ public class Registry implements Node {
     private volatile int noOfTaskFinishedNodes = 0;
     private volatile int noOfSummaryReportedNodes = 0;
 
-    private volatile int sumOfPacketsReceived;
-    private volatile int sumOfPacketsSent;
-    private volatile long noOfPacketsSent;
-    private volatile long noOfPacketsReceived;
     private StatisticsCollectorAndDisplay statisticsCollector;
 
     private TCPConnectionsCache tcpConnectionsCache;
@@ -100,10 +99,6 @@ public class Registry implements Node {
 
     public void start(int noOfPacketsToSend) {
         if (overlaySetup) {
-            noOfPacketsSent = 0;
-            noOfPacketsReceived = 0;
-            sumOfPacketsSent = 0;
-            sumOfPacketsReceived = 0;
             requestTaskInitiate(noOfPacketsToSend);
         } else {
             logger.warn("Overlay has not been set up. Cannot start sending messages.");
@@ -182,29 +177,15 @@ public class Registry implements Node {
         OverlayNodeReportsTrafficSummary trafficSummaryEvent =
                 (OverlayNodeReportsTrafficSummary) event;
 
-        trafficSummaryEvent.getNodeId();
-        noOfPacketsReceived += trafficSummaryEvent.getNumPacketsReceived();
-        noOfPacketsSent += trafficSummaryEvent.getNumPacketsSent();
-        sumOfPacketsReceived += trafficSummaryEvent.getSumPacketsReceived();
-        sumOfPacketsSent += trafficSummaryEvent.getSumPacketsSent();
-
         noOfSummaryReportedNodes++;
 
         statisticsCollector.add(trafficSummaryEvent);
 
         if (noOfSummaryReportedNodes == noOfTaskFinishedNodes) {
-
             // clear counters for next iteration
             noOfTaskFinishedNodes = 0;
             noOfSummaryReportedNodes = 0;
         }
-    }
-
-    private void printSummaries() {
-        logger.info("noOfPacketsReceived: " + noOfPacketsReceived);
-        logger.info("noOfPacketsSent: " + noOfPacketsSent);
-        logger.info("sumOfPacketsReceived: " + sumOfPacketsReceived);
-        logger.info("sumOfPacketsSent: " + sumOfPacketsSent);
     }
 
     private void respondToNodeReportsOverlaySetupStatus(Event event) {

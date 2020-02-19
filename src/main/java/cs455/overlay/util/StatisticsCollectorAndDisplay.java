@@ -29,7 +29,7 @@ public class StatisticsCollectorAndDisplay {
         rows = new ArrayList<>();
     }
 
-    public void add(OverlayNodeReportsTrafficSummary trafficSummaryEvent) {
+    public synchronized void add(OverlayNodeReportsTrafficSummary trafficSummaryEvent) {
         logger.debug("Adding row - Node " + trafficSummaryEvent.getNodeId());
         Row row = new Row();
         row.nodeId = trafficSummaryEvent.getNodeId();
