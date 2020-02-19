@@ -6,6 +6,7 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Random;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
@@ -49,6 +50,44 @@ public class MessagingNode implements Node {
 
     private TCPConnectionsCache tcpConnectionsCache;
 
+    private LinkedBlockingQueue<Event> eventQueue;
+    private MessagingNodeEventHandler eventHandler;
+
+    private class MessagingNodeEventHandler extends Thread {
+        @Override
+        public void run() {
+            try {
+                Event event = eventQueue.take();
+                int type = event.getType();
+
+                switch (type) {
+                    case Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS:
+                        handleRegistryReportsRegistrationStatus(event);
+                        break;
+                    case Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS:
+                        handleRegistryReportsDeregistrationStatus(event);
+                        break;
+                    case Protocol.REGISTRY_SENDS_NODE_MANIFEST:
+                        respondToRegistrySendsNodeManifest(event);
+                        break;
+                    case Protocol.REGISTRY_REQUESTS_TASK_INITIATE:
+                        initiateTask(event);
+                        break;
+                    case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
+                        sendTaskSummaryToRegistry(event);
+                        break;
+                    case Protocol.OVERLAY_NODE_SENDS_DATA:
+                        respondToOverlayNodeSendsData(event);
+                        break;
+                    default:
+                        logger.error("Unknown event type: " + type);
+                }
+            } catch (InterruptedException e) {
+                logger.error(e.getStackTrace());
+            }
+        }
+    }
+
     public MessagingNode(Socket registrySocket) throws IOException {
         registryConnection = new TCPConnection(registrySocket, this);
 
@@ -56,6 +95,9 @@ public class MessagingNode implements Node {
         tcpServerThread = new TCPServerThread(0, this, tcpConnectionsCache);
 
         commandParser = new InteractiveCommandParser(this);
+
+        eventQueue = new LinkedBlockingQueue<>();
+        eventHandler = new MessagingNodeEventHandler();
 
         sendRegistrationRequestToRegistry();
         connectedNodeIdSocketMap = new HashMap<>();
@@ -71,6 +113,7 @@ public class MessagingNode implements Node {
     public void initialize() {
         tcpServerThread.start();
         commandParser.start();
+        eventHandler.start();
     }
 
     public static void main(String[] args) throws IOException {
@@ -111,30 +154,7 @@ public class MessagingNode implements Node {
 
     @Override
     public void onEvent(Event event) {
-        int type = event.getType();
-
-        switch (type) {
-            case Protocol.REGISTRY_REPORTS_REGISTRATION_STATUS:
-                handleRegistryReportsRegistrationStatus(event);
-                break;
-            case Protocol.REGISTRY_REPORTS_DEREGISTRATION_STATUS:
-                handleRegistryReportsDeregistrationStatus(event);
-                break;
-            case Protocol.REGISTRY_SENDS_NODE_MANIFEST:
-                respondToRegistrySendsNodeManifest(event);
-                break;
-            case Protocol.REGISTRY_REQUESTS_TASK_INITIATE:
-                initiateTask(event);
-                break;
-            case Protocol.REGISTRY_REQUESTS_TRAFFIC_SUMMARY:
-                sendTaskSummaryToRegistry(event);
-                break;
-            case Protocol.OVERLAY_NODE_SENDS_DATA:
-                respondToOverlayNodeSendsData(event);
-                break;
-            default:
-                logger.error("Unknown event type: " + type);
-        }
+        eventQueue.offer(event);
     }
 
 

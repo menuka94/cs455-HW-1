@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.LinkedBlockingQueue;
 import cs455.overlay.routing.RoutingEntry;
 import cs455.overlay.routing.RoutingTable;
 import cs455.overlay.transport.TCPConnection;
@@ -51,7 +52,42 @@ public class Registry implements Node {
     private volatile long noOfPacketsSent;
     private volatile long noOfPacketsReceived;
 
+    private LinkedBlockingQueue<Event> eventQueue;
+
     private TCPConnectionsCache tcpConnectionsCache;
+    private RegistryEventHandler eventHandler;
+
+    private class RegistryEventHandler extends Thread {
+        @Override
+        public void run() {
+            try {
+                Event event = eventQueue.take();
+                int type = event.getType();
+                logger.info("onEvent: event type: " + type);
+                switch (type) {
+                    case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
+                        registerOverlayNode(event);
+                        break;
+                    case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
+                        deregisterOverlayNode(event);
+                        break;
+                    case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
+                        respondToNodeReportsOverlaySetupStatus(event);
+                        break;
+                    case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
+                        respondToOverlayNodeReportsTrafficSummary(event);
+                        break;
+                    case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
+                        respondToOverlayNodeReportsTaskFinished(event);
+                        break;
+                    default:
+                        logger.warn("Unknown event type: " + type);
+                }
+            } catch (InterruptedException e) {
+                logger.error(e.getStackTrace());
+            }
+        }
+    }
 
     private Registry(int port) throws IOException {
         this.port = port;
@@ -61,41 +97,28 @@ public class Registry implements Node {
         registeredNodeSocketMap = new HashMap<>();
         registeredNodeListeningPortMap = new ConcurrentHashMap<>();
         random = new Random();
+        eventQueue = new LinkedBlockingQueue<>();
+        eventHandler = new RegistryEventHandler();
     }
 
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(args[0]);
         Registry registry = new Registry(port);
-        registry.tcpServerThread.start();
-        registry.commandParser.start();
+        registry.initialize();
+    }
+
+    private void initialize() {
+        tcpServerThread.start();
+        commandParser.start();
+        eventHandler.start();
     }
 
     @Override
     public void onEvent(Event event) {
-        int type = event.getType();
-        logger.info("onEvent: event type: " + type);
-
-        switch (type) {
-            case Protocol.OVERLAY_NODE_SENDS_REGISTRATION:
-                registerOverlayNode(event);
-                break;
-            case Protocol.OVERLAY_NODE_SENDS_DEREGISTRATION:
-                deregisterOverlayNode(event);
-                break;
-            case Protocol.NODE_REPORTS_OVERLAY_SETUP_STATUS:
-                respondToNodeReportsOverlaySetupStatus(event);
-                break;
-            case Protocol.OVERLAY_NODE_REPORTS_TRAFFIC_SUMMARY:
-                respondToOverlayNodeReportsTrafficSummary(event);
-                break;
-            case Protocol.OVERLAY_NODE_REPORTS_TASK_FINISHED:
-                respondToOverlayNodeReportsTaskFinished(event);
-                break;
-            default:
-                logger.warn("Unknown event type: " + type);
-        }
+        eventQueue.offer(event);
     }
 
+    // start sending packets to other messaging nodes
     public synchronized void start(int noOfPacketsToSend) {
         if (overlaySetup) {
             noOfPacketsSent = 0;
