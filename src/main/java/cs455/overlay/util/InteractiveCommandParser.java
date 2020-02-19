@@ -53,8 +53,12 @@ public class InteractiveCommandParser extends Thread {
             } else if (nextCommand.contains(Constants.LIST_ROUTING_TABLES)) {
                 registry.listRoutingTables();
             } else if (nextCommand.contains(Constants.START)) {
-                int numberOfMessages = Integer.parseInt(nextCommand.split(" ")[1]);
-                ((Registry) node).start(numberOfMessages);
+                try {
+                    int numberOfMessages = Integer.parseInt(nextCommand.split(" ")[1]);
+                    ((Registry) node).start(numberOfMessages);
+                } catch (NumberFormatException e) {
+                    logger.error("Invalid number of messages entered");
+                }
             } else if (nextCommand.contains(Constants.SETUP_OVERLAY)) {
                 String[] args = nextCommand.split("\\s+");
                 int tableSize = 0;

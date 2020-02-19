@@ -96,7 +96,7 @@ public class Registry implements Node {
         }
     }
 
-    public synchronized void start(int noOfPacketsToSend) {
+    public void start(int noOfPacketsToSend) {
         if (overlaySetup) {
             noOfPacketsSent = 0;
             noOfPacketsReceived = 0;
@@ -200,7 +200,7 @@ public class Registry implements Node {
         logger.info("sumOfPacketsSent: " + sumOfPacketsSent);
     }
 
-    private synchronized void respondToNodeReportsOverlaySetupStatus(Event event) {
+    private void respondToNodeReportsOverlaySetupStatus(Event event) {
         NodeReportsOverlaySetupStatus overlaySetupStatusEvent = (NodeReportsOverlaySetupStatus) event;
 
         int successStatus = overlaySetupStatusEvent.getSuccessStatus();
@@ -209,7 +209,9 @@ public class Registry implements Node {
         } else if (registeredNodeSocketMap.containsKey(successStatus)) {
             // successful
             logger.info(overlaySetupStatusEvent.getInfoString());
-            noOfConfirmedOverlayNodes++;
+            synchronized (this) {
+                noOfConfirmedOverlayNodes++;
+            }
         } else {
             logger.warn("Node " + successStatus + " not found in registered messaging " +
                     "nodes");

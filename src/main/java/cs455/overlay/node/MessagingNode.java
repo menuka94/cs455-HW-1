@@ -167,7 +167,7 @@ public class MessagingNode implements Node {
      * byte: Message type; REGISTRY_REQUESTS_TASK_INITIATE
      * int: Number of data packets to send
      */
-    private synchronized void initiateTask(Event event) {
+    private void initiateTask(Event event) {
         logger.info("Node " + nodeId + " starting to send messages");
         sendTracker = 0;
         receiveTracker = 0;
@@ -179,10 +179,11 @@ public class MessagingNode implements Node {
         int noOfPacketsToSend = taskInitiateEvent.getNoOfPacketsToSend();
         Random random = new Random();
 
+        logger.info("Source ID: " + getNodeId());
+        OverlayNodeSendsData sendsDataEvent;
         for (int i = 0; i < noOfPacketsToSend; i++) {
-            OverlayNodeSendsData sendsDataEvent = new OverlayNodeSendsData();
+            sendsDataEvent = new OverlayNodeSendsData();
             sendsDataEvent.setSourceId(getNodeId());
-            logger.info("Source ID: " + getNodeId());
 
             int payload = random.nextInt();
             sendsDataEvent.setPayload(payload);
@@ -220,9 +221,11 @@ public class MessagingNode implements Node {
             Socket socket = routingEntry.getSocket();
             TCPConnection tcpConnection = tcpConnectionsCache.getConnection(socket);
             try {
-                tcpConnection.sendData(sendsDataEvent.getBytes());
-                sendTracker++;
-                sendSummation += payload;
+                synchronized (this) {
+                    tcpConnection.sendData(sendsDataEvent.getBytes());
+                    sendTracker++;
+                    sendSummation += payload;
+                }
             } catch (IOException e) {
                 logger.error(e.getStackTrace());
             }
@@ -399,7 +402,7 @@ public class MessagingNode implements Node {
         registryConnection.sendData(deregistrationEvent.getBytes());
     }
 
-    private synchronized void respondToOverlayNodeSendsData(Event event) {
+    private void respondToOverlayNodeSendsData(Event event) {
         OverlayNodeSendsData nodeSendsDataEvent = (OverlayNodeSendsData) event;
         nodeSendsDataEvent.setDisseminationTraceLength(nodeSendsDataEvent.
                 getDisseminationTraceLength() + 1);
@@ -407,8 +410,10 @@ public class MessagingNode implements Node {
         int destinationId = nodeSendsDataEvent.getDestinationId();
         if (destinationId == nodeId) {
             // current node is packet's destination
-            receiveTracker++;
-            receiveSummation += nodeSendsDataEvent.getPayload();
+            synchronized (this) {
+                receiveTracker++;
+                receiveSummation += nodeSendsDataEvent.getPayload();
+            }
         } else {
             // current node is not the destination
             // check if the destination is found in current node's routing table
@@ -428,7 +433,9 @@ public class MessagingNode implements Node {
                 logger.error(e.getStackTrace());
             }
 
-            relayTracker++;
+            synchronized (this) {
+                relayTracker++;
+            }
         }
     }
 
@@ -437,6 +444,7 @@ public class MessagingNode implements Node {
     }
 
     public void printRoutingTable() {
+        System.out.println("Routing Table for node " + getNodeId());
         routingTable.printRoutingTable();
     }
 
