@@ -98,6 +98,7 @@ public class MessagingNode implements Node {
 
         eventQueue = new LinkedBlockingQueue<>();
         eventHandler = new MessagingNodeEventHandler();
+        eventHandler.start();
 
         sendRegistrationRequestToRegistry();
         connectedNodeIdSocketMap = new HashMap<>();
@@ -113,7 +114,6 @@ public class MessagingNode implements Node {
     public void initialize() {
         tcpServerThread.start();
         commandParser.start();
-        eventHandler.start();
     }
 
     public static void main(String[] args) throws IOException {

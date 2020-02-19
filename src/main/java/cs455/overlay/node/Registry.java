@@ -99,6 +99,7 @@ public class Registry implements Node {
         random = new Random();
         eventQueue = new LinkedBlockingQueue<>();
         eventHandler = new RegistryEventHandler();
+        eventHandler.start();
     }
 
     public static void main(String[] args) throws IOException {
@@ -110,7 +111,6 @@ public class Registry implements Node {
     private void initialize() {
         tcpServerThread.start();
         commandParser.start();
-        eventHandler.start();
     }
 
     @Override
