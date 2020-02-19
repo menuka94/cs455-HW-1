@@ -185,13 +185,17 @@ public class MessagingNode implements Node {
             sendsDataEvent = new OverlayNodeSendsData();
             sendsDataEvent.setSourceId(getNodeId());
 
+            if (i % 1000 == 0) {
+                logger.info("Message " + i);
+            }
+
             int payload = random.nextInt();
             sendsDataEvent.setPayload(payload);
 
             // select a node at random from the nodes in the network
             int destinationNodeIdPosition = random.nextInt(allNodeIds.length);
             int destinationNodeId = allNodeIds[destinationNodeIdPosition];
-            logger.info("Destination ID: " + destinationNodeId);
+            // logger.info("Destination ID: " + destinationNodeId);
 
             // avoid sending packet to the node itself
             while (getNodeId() == destinationNodeId) {
