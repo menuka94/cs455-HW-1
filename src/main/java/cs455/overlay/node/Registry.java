@@ -54,9 +54,7 @@ public class Registry implements Node {
     private Registry(int port) throws IOException {
         this.port = port;
         tcpServerThread = new TCPServerThread(port, this);
-        tcpServerThread.start();
         commandParser = new InteractiveCommandParser(this);
-        commandParser.start();
         registeredNodeSocketMap = new HashMap<>();
         registeredNodeListeningPortMap = new ConcurrentHashMap<>();
         random = new Random();
@@ -65,6 +63,8 @@ public class Registry implements Node {
     public static void main(String[] args) throws IOException {
         int port = Integer.parseInt(args[0]);
         Registry registry = new Registry(port);
+        registry.tcpServerThread.start();
+        registry.commandParser.start();
     }
 
     @Override

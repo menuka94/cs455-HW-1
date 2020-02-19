@@ -51,10 +51,8 @@ public class MessagingNode implements Node {
         registryConnection = new TCPConnection(registrySocket, this);
 
         tcpServerThread = new TCPServerThread(0, this);
-        tcpServerThread.start();
 
         commandParser = new InteractiveCommandParser(this);
-        commandParser.start();
 
         sendRegistrationRequestToRegistry();
         connectedNodeIdSocketMap = new HashMap<>();
@@ -66,6 +64,10 @@ public class MessagingNode implements Node {
         receiveSummation = 0;
     }
 
+    public void initialize() {
+        tcpServerThread.start();
+        commandParser.start();
+    }
 
     public static void main(String[] args) throws IOException {
 
@@ -83,6 +85,7 @@ public class MessagingNode implements Node {
         int registryPort = Integer.parseInt(args[1]);
         Socket socket = new Socket(registryHost, registryPort);
         MessagingNode node = new MessagingNode(socket);
+        node.initialize();
         TCPConnection connection;
         if (TCPConnectionsCache.containsConnection(socket)) {
             connection = TCPConnectionsCache.getConnection(socket);
